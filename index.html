@@ -339,7 +339,8 @@ body.focus-mode .pad{
           <li><kbd>1 2 3</kbd><span>切換右邊的分頁</span></li>
           <li><kbd>M / F</kbd><span>聲音開關 / 全螢幕切換</span></li>
         </ul>
-        <p class="note">台中和永和是兩張地圖。走到<b>高鐵台中站</b>前按 <b>E</b> 就能搭高鐵到板橋、再轉捷運到永和；在永和走到<b>捷運永安市場站</b>前按 <b>E</b> 就能回台中。坐車途中點一下可以直接跳到抵達。</p>
+        <p class="note">台中、永和、台東是三張地圖。台中的<b>高鐵台中站</b>前按 <b>E</b> 搭高鐵到板橋、再轉捷運到永和；台中的<b>台中車站</b>（紅磚老站房旁）前按 <b>E</b> 搭台鐵普悠瑪號經南迴線到台東。永和的捷運永安市場站、台東的台東車站都可以搭回台中。坐車途中點一下可以直接跳到抵達。</p>
+        <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
         <div class="act">
@@ -592,7 +593,17 @@ function buildTC(){
   B(64,50,5,3,'brick','宮原眼科');
   B(76,51,11,5,'brick','台中車站');
   B(3,51,17,4,'hsr','高鐵台中站');                 // 又寬又矮的站房，上面是高架月台
-  block(63,13,82,24,'shop'); block(2,2,20,24,'house'); block(2,34,20,42,'house');
+  block(63,13,82,24,'shop'); block(2,2,20,24,'house');
+  // 桑董的二手車行（文心路西側）：展示場、辦公室、一排排待售的車、門口一張麻將桌
+  fillT(2,34,20,10,PLAZA);
+  B(3,34,6,3,'shop','桑董車行');
+  for(var cr=0;cr<2;cr++)for(var cc=0;cc<4;cc++){
+    var cxp=11+cc*2.6, cyp=35.6+cr*2.4;
+    props.push({t:'car',x:cxp,y:cyp,v:(cr*4+cc)%6});
+    mask[idx(Math.floor(cxp),Math.floor(cyp))]=1;
+  }
+  props.push({t:'mahjong',x:6.5,y:40.6}); mask[idx(6,40)]=1;
+  props.push({t:'carsign',x:15,y:43.4});
   block(76,35,86,47,'shop'); block(29,34,34,42,'house');
   plantTrees(function(x,y){return x>=37&&x<=44;});
 
@@ -605,7 +616,10 @@ function buildTC(){
 }
 var TC={
   id:'tc', name:'台中', en:'TAICHUNG', build:buildTC, spawn:{x:11.5,y:58.5},
-  gates:[{x:11.5,y:57.2,to:'yh',label:'搭高鐵往板橋（再轉捷運到永和）',short:'搭高鐵'}],
+  gates:[{x:11.5,y:57.2,to:'yh',label:'搭高鐵往板橋（再轉捷運到永和）',short:'搭高鐵',place:'高鐵台中站',
+          desc:'高鐵站前的廣場很寬。往東沿著台灣大道走，可以到草悟道、審計新村和台中車站。'},
+         {x:81.5,y:57.4,to:'td',label:'搭台鐵普悠瑪號往台東',short:'搭火車',place:'台中車站',
+          desc:'紅磚老站房旁邊就是新的高架車站。往西走是宮原眼科和第二市場。'}],
   pois:[
    {x:32,y:18,tag:'藝文',t:'臺中國家歌劇院',s:'惠來路二段',b:'整棟建築沒有一根直的柱子，牆面是一個個彎曲的洞，像海綿也像山洞。晚上燈打上去，外牆會透出暖黃色的光。'},
    {x:41,y:24,tag:'綠園道',t:'草悟道',s:'科博館到勤美',b:'一條從北到南的帶狀公園，兩邊是咖啡店和選物店。假日有市集，草地上有人鋪野餐墊，小孩追著泡泡跑。'},
@@ -616,6 +630,7 @@ var TC={
    {x:66,y:54,tag:'老建築',t:'宮原眼科',s:'中山路20號',b:'原本是一間眼科醫院，紅磚牆和挑高的木頭書櫃現在擺滿糖果和冰淇淋。排隊的人比看病的人還多。'},
    {x:81,y:57,tag:'車站',t:'台中車站（舊站）',s:'台灣大道一段',b:'紅磚和白色飾帶的老站房，屋頂上有一座小鐘塔。旁邊新的高架車站接手了列車，老站房留著讓人拍照。'},
    {x:73,y:40,tag:'水岸',t:'綠川',s:'中區',b:'整理過的河道兩旁種了樹、鋪了步道，晚上燈光倒映在水面上。以前大家說這是台中的「小京都」。'},
+   {x:9,y:44,tag:'店家',t:'桑董二手車行',s:'文心路旁',b:'門口拉著「保證無泡水、原廠保養」的紅布條，一排車擦得發亮。兩個老闆比較常坐在門口打麻將，客人來了才站起來。'},
    {x:11,y:58,tag:'車站',t:'高鐵台中站',s:'烏日（遊戲裡放近了一點）',b:'白色的大站房和高架月台。往北一個小時不到就到台北，往南到高雄。在這裡可以搭車去永和。'}
   ],
   items:[
@@ -637,13 +652,19 @@ var TC={
    {x:30,y:19,c:'#e9e2d4',c2:'#3c4a58',n:'歌劇院導覽員',l:['這棟樓裡面找不到一根直的柱子喔。','晚上的外牆比白天好看。','表演快開始了，記得手機靜音。']},
    {x:64,y:42,c:'#efe1cf',c2:'#a8453a',n:'市場阿姨',l:['菜頭粿剛起鍋，要不要一塊？','我們這攤開四十年了。','早點來，十點就賣完了。']},
    {x:70,y:10,c:'#f0e6d8',c2:'#3f7f68',n:'一中街的學生',l:['補習班下課就是來這裡。','這家雞排要排二十分鐘。','手搖飲半糖少冰，不能再甜了。']},
-   {x:80,y:59,c:'#e4dccd',c2:'#8c6a3e',n:'計程車司機',l:['要去高鐵站嗎？其實走過去也不遠啦。','舊站房很多人來拍婚紗。','台中路很寬，騎車小心。']}
+   {x:4,y:40,c:'#d8a77f',c2:'#f2f2ee',n:'桑董說車',named:1,hs:'ga',stay:1,dir:'right',star:'#e3a21a',
+    idle:['碰！','聽牌了，不要吵','這把我做大的','三萬啦，誰要'],
+    l:['少年仔，看車喔？這台才跑三萬公里啦','價錢好談，先等我這把打完','原廠保養、無泡水，我桑董掛保證']},
+   {x:8,y:40,c:'#d9a57a',c2:'#2b2b2e',n:'你好敝姓隨名便',named:1,hs:'gb',stay:1,dir:'left',star:'#e3a21a',
+    idle:['吃！','自摸！三台！','槓！嶺上開花啦','你很慢欸，快點出牌'],
+    l:['你好，敝姓隨，名便','看車找桑董，打牌找我','要不要坐下來一起摸兩圈？']},
+   {x:87,y:60,c:'#e4dccd',c2:'#8c6a3e',n:'計程車司機',l:['要去高鐵站嗎？其實走過去也不遠啦。','舊站房很多人來拍婚紗。','台中路很寬，騎車小心。']}
   ],
   areas:[
    {x:0,y:0,w:24,h:28,n:'西屯'},{x:24,y:0,w:13,h:28,n:'歌劇院一帶'},{x:37,y:0,w:8,h:64,n:'草悟道'},
    {x:45,y:0,w:14,h:28,n:'審計新村'},{x:59,y:0,w:31,h:28,n:'一中街'},{x:0,y:28,w:90,h:5,n:'台灣大道'},
    {x:45,y:33,w:14,h:12,n:'勤美商圈'},{x:59,y:33,w:12,h:15,n:'第二市場'},{x:71,y:33,w:4,h:31,n:'綠川'},
-   {x:59,y:48,w:12,h:16,n:'宮原眼科一帶'},{x:75,y:48,w:15,h:16,n:'台中車站'},{x:0,y:44,w:24,h:20,n:'高鐵台中站'}
+   {x:59,y:48,w:12,h:16,n:'宮原眼科一帶'},{x:75,y:48,w:15,h:16,n:'台中車站'},{x:0,y:33,w:24,h:11,n:'桑董二手車行'},{x:0,y:44,w:24,h:20,n:'高鐵台中站'}
   ]
 };
 
@@ -684,7 +705,8 @@ function buildYH(){
 }
 var YH={
   id:'yh', name:'永和', en:'YONGHE', build:buildYH, spawn:{x:51.5,y:41.8},
-  gates:[{x:51.5,y:40.6,to:'tc',label:'搭捷運到板橋，轉高鐵回台中',short:'搭車'}],
+  gates:[{x:51.5,y:40.6,to:'tc',label:'搭捷運到板橋，轉高鐵回台中',short:'搭車',place:'捷運永安市場站',
+          desc:'從永安市場站的出口走上來，旁邊就是市場。往西是四號公園，往北走到底是新店溪。'}],
   pois:[
    {x:17,y:27,tag:'公園',t:'四號公園',s:'永和・中正路',b:'永和人口中的「四號公園」。池塘邊有人餵魚，傍晚有阿姨跳舞，跑步的人一圈一圈繞著步道。旁邊就是運動中心和圖書館。'},
    {x:39,y:41,tag:'市場',t:'永安市場',s:'中和路',b:'早上最熱鬧的傳統市場，菜攤、水煎包、現切水果擠在一起。捷運站就在旁邊，買完菜直接搭車。'},
@@ -723,14 +745,95 @@ var YH={
    {x:0,y:47,w:90,h:17,n:'永和巷弄'}
   ]
 };
-var WORLDS={tc:TC, yh:YH};
+/* ---------- 台東 ---------- */
+function buildTD(){
+  baseGrass();
+  // 西邊的中央山脈、東邊的太平洋
+  fillT(0,0,10,MH,ROCK);
+  for(var y=0;y<MH;y++)for(var x=0;x<12;x++){ if(x<10&&hash(x+71,y+9)<0.35)terrain[idx(x,y)]=ROCKD; if(x>=10&&hash(x,y+3)<0.4)terrain[idx(x,y)]=BUSH; }
+  fillT(70,0,MW-70,MH,WATER); vT(69,0,MH-1,1,SHALLOW); fillT(66,0,3,MH,SAND); vT(65,0,MH-1,1,PAVE);   // 海濱步道
+  // 台東森林公園：琵琶湖、活水湖
+  ellT(54,10,6,4,SHALLOW); ellT(54,10,5,3,WATER);
+  ellT(58,24,4,5,SHALLOW); ellT(58,24,3,4,WATER);
+  hT(16,44,64,1,PAVE);
+  // 道路
+  vT(35,0,MH-1,1,PAVE); vT(36,0,MH-1,2,ROAD); vT(38,0,MH-1,1,PAVE);       // 中華路
+  hT(33,12,64,1,PAVE); hT(34,12,64,2,ROAD); hT(36,12,64,1,PAVE);          // 正氣路
+  hT(45,12,64,1,PAVE); hT(46,12,64,2,ROAD); hT(48,12,64,1,PAVE);          // 新生路
+  vT(20,36,MH-1,1,PAVE); vT(21,36,MH-1,2,ROAD); vT(23,36,MH-1,1,PAVE);    // 往台東車站
+  // 鐵花村、夜市、車站前、海濱公園
+  fillT(40,38,10,6,PLAZA);
+  fillT(25,29,10,4,PAVE);
+  fillT(13,56,16,6,PLAZA);
+  fillT(56,38,9,10,PLAZA);
+  // 卑南遺址公園
+  fillT(12,22,12,10,GRASS);
+
+  B(14,51,12,5,'station','台東車站');
+  B(51,39,5,3,'station','舊站');
+  B(41,36,4,2,'shop','鐵花村');
+  block(24,38,33,43,'house'); block(40,24,50,31,'shop'); block(24,49,34,60,'house');
+  block(40,50,55,60,'house'); block(13,2,33,18,'house');
+  plantTrees(function(x,y){return (x>=44&&x<=64&&y<=30)||(x>=10&&x<=13)||(x>=12&&x<=23&&y>=22&&y<=31);});
+
+  for(var i=12;i<64;i+=7){props.push({t:'lamp',x:i+0.5,y:32.4}); props.push({t:'lamp',x:i+0.5,y:36.6});}
+  for(i=3;i<MH;i+=8)props.push({t:'lamp',x:64.5,y:i+0.5});
+  var bal=[[41.5,39.2],[44,38.8],[46.5,39.3],[49,38.9],[42.5,43.4],[47.5,43.2]];   // 鐵花村的熱氣球燈籠
+  bal.forEach(function(b,k){props.push({t:'lantern',x:b[0],y:b[1],v:k%4});});
+  var st=['釋迦','炸蛋蔥油餅','米苔目','烤飛魚','小米甜甜圈'];
+  for(i=0;i<5;i++)props.push({t:'stall',x:26+i*2,y:30.6,name:st[i],v:i%3});
+  props.push({t:'stone',x:17.5,y:27.5}); props.push({t:'stone',x:19.2,y:27.8});        // 卑南的月形石柱
+  [[60,42],[60,46],[57,40],[50,12],[18,25]].forEach(function(b){props.push({t:'bench',x:b[0]+0.5,y:b[1]+0.5});});
+}
+var TD={
+  id:'td', name:'台東', en:'TAITUNG', build:buildTD, spawn:{x:20.5,y:58.4},
+  gates:[{x:20.5,y:57.2,to:'tc',label:'搭台鐵普悠瑪號回台中',short:'搭火車',place:'台東車站',
+          desc:'車站在市區西邊，背後就是中央山脈。往東走過新生路，就到鐵花村和海濱公園。'}],
+  pois:[
+   {x:20,y:57,tag:'車站',t:'台東車站',s:'台鐵・南迴線',b:'新站蓋在市區外，站房的屋頂像一頂大斗笠。出站就看得到中央山脈，空氣比城市裡乾淨一截。'},
+   {x:45,y:44,tag:'音樂',t:'鐵花村音樂聚落',s:'新生路135巷',b:'舊鐵道宿舍改成的音樂聚落。晚上樹上掛滿熱氣球形狀的燈籠，小舞台上有人彈吉他唱歌，很多是部落的歌手。'},
+   {x:53,y:42,tag:'老車站',t:'台東舊站・鐵道藝術村',s:'鐵花路',b:'以前的台東車站，鐵軌還留著，月台變成市集和展覽。火車不再停了，換成人慢慢走。'},
+   {x:54,y:15,tag:'公園',t:'台東森林公園・琵琶湖',s:'黑森林',b:'一大片木麻黃林，當地人叫它黑森林。中間的琵琶湖安靜得像一面鏡子，騎單車繞一圈很舒服。'},
+   {x:58,y:30,tag:'公園',t:'活水湖',s:'森林公園內',b:'很適合游泳和划獨木舟的湖，湖水接著海，旁邊就是太平洋。'},
+   {x:61,y:48,tag:'海邊',t:'海濱公園',s:'太平洋岸',b:'步道旁邊就是海，浪聲很大。早上看日出的人會坐在堤防上，等太陽從海平面跳出來。'},
+   {x:18,y:31,tag:'遺址',t:'卑南遺址公園',s:'卑南文化',b:'三千多年前的人在這裡生活，最有名的是那根立在地上的月形石柱。草地很大，可以躺著看山。'},
+   {x:30,y:33,tag:'夜市',t:'台東觀光夜市',s:'正氣路',b:'只在晚上開的夜市，釋迦、烤飛魚、炸蛋蔥油餅，一攤一攤排過去，人不算擠，可以慢慢吃。'}
+  ],
+  items:[
+   {x:27,y:30,n:'釋迦',w:'台東・夜市',d:'台東的釋迦又大又甜，要等軟了才能吃。'},
+   {x:31,y:31,n:'炸蛋蔥油餅',w:'台東・夜市',d:'蛋黃半熟，一咬就流出來。',night:1},
+   {x:47,y:41,n:'熱氣球燈籠',w:'台東・鐵花村',d:'晚上亮起來的那一顆，掛在最低的樹枝上。',night:1},
+   {x:44,y:43,n:'吉他撥片',w:'台東・鐵花村',d:'舞台邊撿到的，上面刻著一個小小的太陽。'},
+   {x:53,y:44,n:'舊站的鐵道釘',w:'台東・舊站',d:'生鏽的鐵釘，比你想的還重。'},
+   {x:50,y:8,n:'木麻黃的毬果',w:'台東・森林公園',d:'小小一顆，刺刺的。'},
+   {x:64,y:52,n:'太平洋的漂流木',w:'台東・海濱公園',d:'被海水磨得很光滑。'},
+   {x:62,y:20,n:'日出明信片',w:'台東・海邊',d:'太陽剛從海平面跳出來的那一秒。'},
+   {x:16,y:30,n:'卑南的石板',w:'台東・卑南遺址',d:'一小片板岩，上面有很淡的紋路。'},
+   {x:24,y:58,n:'池上便當',w:'台東・台東車站',d:'鐵盒便當，排骨和飯都還是熱的。'}
+  ],
+  npcs:[
+   {x:45,y:41,c:'#c99a78',c2:'#c8323a',n:'小幸運',named:1,hs:'luck',star:'#e0353b',
+    idle:['今天晚上這裡有表演喔','海風好舒服～','我阿嬤說，來台東就要慢慢走'],
+    l:['歡迎來台東！','要不要留下來聽歌？','你從台中來的喔？好遠耶']},
+   {x:28,y:32,c:'#ead9c4',c2:'#5a8a52',n:'釋迦攤阿姨',l:['這顆明天就軟了，回去放兩天。','我們家的釋迦最甜啦。','要不要切一顆給你試吃？']},
+   {x:62,y:44,c:'#d9b896',c2:'#2f7fa8',n:'衝浪的年輕人',l:['今天浪不錯喔！','東河那邊的浪更大。','曬黑是正常的啦。']},
+   {x:52,y:18,c:'#e7dfd0',c2:'#7a6a3e',n:'騎單車的旅人',l:['我從花蓮騎過來的。','森林公園騎一圈剛剛好。','明天要去池上看稻田。']}
+  ],
+  areas:[
+   {x:0,y:0,w:12,h:64,n:'中央山脈'},{x:44,y:0,w:21,h:31,n:'台東森林公園'},{x:65,y:0,w:25,h:64,n:'太平洋岸'},
+   {x:12,y:22,w:12,h:10,n:'卑南遺址公園'},{x:24,y:28,w:12,h:5,n:'觀光夜市'},{x:12,y:33,w:53,h:4,n:'正氣路'},
+   {x:39,y:37,w:12,h:8,n:'鐵花村'},{x:51,y:37,w:6,h:8,n:'舊站'},{x:56,y:37,w:9,h:11,n:'海濱公園'},
+   {x:12,y:45,w:53,h:4,n:'新生路'},{x:12,y:49,w:20,h:15,n:'台東車站'},{x:12,y:0,w:32,h:22,n:'台東市區北邊'}
+  ]
+};
+var WORLDS={tc:TC, yh:YH, td:TD};
 var POIS=[], ITEMS=[], NPCS=[], AREAS=[], GATES=[];
-var DEX_ALL=TC.items.concat(YH.items), POIS_ALL=TC.pois.concat(YH.pois);
-TC.items.concat(YH.items).forEach(function(it){it.x+=0.5;it.y+=0.5;});
-TC.npcs.concat(YH.npcs).forEach(function(n){n.x+=0.5;n.y+=0.5;n.li=0;n.wait=Math.random()*3;});
+var DEX_ALL=TC.items.concat(YH.items,TD.items), POIS_ALL=TC.pois.concat(YH.pois,TD.pois);
+TC.items.concat(YH.items,TD.items).forEach(function(it){it.x+=0.5;it.y+=0.5;});
+TC.npcs.concat(YH.npcs,TD.npcs).forEach(function(n){n.x+=0.5;n.y+=0.5;n.li=0;n.wait=Math.random()*3;});
 
 // arrive：從別的城市坐車過來就站在出口，否則（新開遊戲）站在出生點
-function loadWorld(id,arrive){
+function loadWorld(id,from){
   var W=WORLDS[id]||TC;
   state.world=W.id;
   terrain.fill(0); mask.fill(0); buildings.length=0; props.length=0;
@@ -739,8 +842,11 @@ function loadWorld(id,arrive){
   ITEMS.forEach(function(it){nudge(it);});
   NPCS.forEach(function(n){nudge(n);n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.sayT=0;
     if(n.pet){ n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0,name:n.petName||''}; }
-    if(n.idle){ n.idleT=2+Math.random()*3; n.idleLast=-1; }});
-  state.px=W.spawn.x*TS; state.py=W.spawn.y*TS;
+    if(n.idle){ n.idleT=2+Math.random()*3; n.idleLast=-1; }
+    if(n.stay){ n.wait=1e9; }});                      // 坐著打牌的人不會走開
+  var g=null; for(var gi=0;gi<W.gates.length;gi++)if(W.gates[gi].to===from)g=W.gates[gi];
+  state.arrGate=g;
+  if(g){ state.px=g.x*TS; state.py=(g.y+1.3)*TS; } else { state.px=W.spawn.x*TS; state.py=W.spawn.y*TS; }
   if(typeof cam!=='undefined'&&cam){ cam.x=state.px-(cv.vw||600)/2; cam.y=state.py-(cv.vh||400)/2; }
   if(typeof mmBase!=='undefined'&&mmBase) rebuildMini();
   var wl=document.getElementById('mm-world'); if(wl) wl.textContent=W.en;
@@ -766,7 +872,7 @@ function load(){
       state.log=Array.isArray(d.log)?d.log:[]; 
       if(typeof d.clock==='number')state.clock=d.clock;
       if(typeof d.hits==='number')state.hits=d.hits;
-      if(d.world==='tc'||d.world==='yh')state.world=d.world;
+      if(d.world==='tc'||d.world==='yh'||d.world==='td')state.world=d.world;
       if(d.run)state.run=1;
       if(typeof d.btWins==='number')state.btWins=d.btWins;
       if(d.mUnlocked)state.mUnlocked=1;
@@ -1022,6 +1128,46 @@ function drawProp(p,ox,oy,time){
     if(night()>0.25){ctx.fillStyle='rgba(255,226,140,.5)';ctx.fillRect(x-6,y-33,12,22);}
     return;
   }
+  if(p.t==='car'){                                 // 待售的二手車
+    var cc=['#d8d8d4','#2b2d33','#b8322f','#3a6ea8','#e6c84a','#5c8a5a'][p.v||0];
+    ctx.fillStyle='rgba(28,34,28,.2)'; ctx.fillRect(x-15,y-1,32,5);
+    ctx.fillStyle=cc; rrect(ctx,x-15,y-12,30,9,3); ctx.fill(); rrect(ctx,x-9,y-19,18,8,3); ctx.fill();
+    ctx.fillStyle='rgba(160,200,220,.85)'; ctx.fillRect(x-7,y-17.5,6.5,5); ctx.fillRect(x+0.5,y-17.5,6.5,5);
+    ctx.fillStyle='#1d1d22'; ctx.beginPath(); ctx.arc(x-8,y-3,3.2,0,6.283); ctx.arc(x+8,y-3,3.2,0,6.283); ctx.fill();
+    ctx.fillStyle='#fff6c2'; ctx.fillRect(x-4,y-11,8,4);
+    return;
+  }
+  if(p.t==='mahjong'){                             // 門口的麻將桌
+    ctx.fillStyle='rgba(28,34,28,.2)'; ctx.fillRect(x-14,y-1,28,5);
+    ctx.fillStyle='#6b4a32'; ctx.fillRect(x-11,y-9,2.5,9); ctx.fillRect(x+8.5,y-9,2.5,9);
+    ctx.fillStyle='#2f6b45'; rrect(ctx,x-13,y-16,26,9,2); ctx.fill();
+    ctx.fillStyle='#f3ecd8';
+    for(var mj=0;mj<6;mj++){ ctx.fillRect(x-10+mj*3.4,y-15.2,2.8,1.8); ctx.fillRect(x-10+mj*3.4,y-9.8,2.8,1.8); }
+    ctx.fillRect(x-3,y-13,2.6,2); ctx.fillRect(x+1,y-12.6,2.6,2);
+    ctx.fillStyle='#c8322f'; ctx.fillRect(x-2.6,y-12.6,1.8,1.2);
+    return;
+  }
+  if(p.t==='carsign'){                             // 車行的紅布條
+    ctx.fillStyle='#5a5a5e'; ctx.fillRect(x-30,y-26,2,26); ctx.fillRect(x+28,y-26,2,26);
+    ctx.fillStyle='#c8262f'; ctx.fillRect(x-30,y-28,60,11);
+    ctx.fillStyle='#fff3c4'; ctx.font='700 7.5px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+    ctx.fillText('保證無泡水・原廠保養',x,y-20); ctx.textAlign='left';
+    return;
+  }
+  if(p.t==='lantern'){                             // 鐵花村的熱氣球燈籠
+    var lc=['#f2b23a','#e05a3a','#f0d264','#e8873a'][p.v||0], glow=night()>0.25;
+    ctx.strokeStyle='#5a4a3a'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,y-40); ctx.lineTo(x,y-26); ctx.stroke();
+    if(glow){ var lg=ctx.createRadialGradient(x,y-20,0,x,y-20,22); lg.addColorStop(0,'rgba(255,200,110,.5)'); lg.addColorStop(1,'rgba(255,200,110,0)'); ctx.fillStyle=lg; ctx.beginPath(); ctx.arc(x,y-20,22,0,6.283); ctx.fill(); }
+    ctx.fillStyle=glow?'#ffd98a':lc; ctx.beginPath(); ctx.ellipse(x,y-21,6,7,0,0,6.283); ctx.fill();
+    ctx.fillStyle='#7a5a3a'; ctx.fillRect(x-2.2,y-14,4.4,2.6);
+    return;
+  }
+  if(p.t==='stone'){                               // 卑南遺址的月形石柱
+    ctx.fillStyle='rgba(28,40,24,.2)'; ctx.fillRect(x-8,y-1,18,5);
+    ctx.fillStyle='#8f8a80'; ctx.beginPath(); ctx.moveTo(x-6,y); ctx.lineTo(x-5,y-30); ctx.quadraticCurveTo(x,y-38,x+5,y-30); ctx.lineTo(x+6,y); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#a6a197'; ctx.beginPath(); ctx.ellipse(x,y-29,3,4,0,0,6.283); ctx.fill();
+    return;
+  }
   if(p.t==='bench'){
     ctx.fillStyle='rgba(28,40,24,.15)';ctx.fillRect(x-13,y,28,5);
     ctx.fillStyle='#8a6a44';ctx.fillRect(x-13,y-8,26,6);ctx.fillRect(x-13,y-18,26,5);
@@ -1080,6 +1226,7 @@ function drawPerson(x,y,c,c2,face,bob,label,hs){
     ctx.fillStyle='#e46f8f';ctx.beginPath();ctx.arc(x+6,y-33+b,2.4,0,6.283);ctx.fill();
   }
   }
+  if(hs==='ga'||hs==='gb'||hs==='luck')drawStyle(x,y,c,face,b,hs);
   if(label){
     ctx.font='500 10.5px "Noto Sans TC",sans-serif';ctx.textAlign='center';
     var tw=ctx.measureText(label).width;
@@ -1166,6 +1313,35 @@ function stepDog(n,dt){
   }else{
     d.sit+=dt;
     var face=n.x-d.x; if(Math.abs(face)>0.05)d.dir=face>0?1:-1;   // 停下來就轉頭看主人
+  }
+}
+// 疊在基本小人上的造型：
+//  ga 桑董說車：白色吊嘎、露出手臂、金項鍊、墨鏡、平頭、海灘褲
+//  gb 你好敝姓隨名便：黑色吊嘎、刺青手臂、金色刺蝟頭、海灘褲
+//  luck 小幸運：烏黑長髮、彩色織紋頭帶、紅色上衣胸前一條彩色幾何織帶、黑色長裙
+function drawStyle(x,y,c,face,b,hs){
+  var back=face==='up', side=face==='left'?-1:face==='right'?1:0;
+  if(hs==='ga'||hs==='gb'){
+    ctx.fillStyle=c; ctx.fillRect(x-7.5,y-17+b,2.6,9); ctx.fillRect(x+4.9,y-17+b,2.6,9);   // 吊嘎露出的手臂
+    if(hs==='gb'){ ctx.fillStyle='rgba(40,70,60,.85)'; ctx.fillRect(x-7.5,y-15+b,2.6,1.4); ctx.fillRect(x-7.5,y-12.5+b,2.6,1.2); ctx.fillRect(x-7,y-10+b,1.6,1.4); }
+    ctx.fillStyle=hs==='ga'?'#3d5a9e':'#7a3b3b'; rrect(ctx,x-7,y-9+b,14,4,1.5); ctx.fill();   // 海灘褲
+    if(!back){ ctx.strokeStyle='#e3b341'; ctx.lineWidth=1.3; ctx.beginPath(); ctx.arc(x,y-19+b,3.6,0.15*Math.PI,0.85*Math.PI); ctx.stroke(); }   // 金項鍊
+    if(hs==='ga'){
+      ctx.fillStyle='#2a2522'; ctx.beginPath(); ctx.arc(x,y-28.5+b,8.2,Math.PI*1.02,Math.PI*1.98); ctx.fill();   // 平頭
+      if(!back){ ctx.fillStyle='#16161a'; if(side) rrect(ctx,x+side*1.5-4,y-28+b,8,3.2,1.4); else rrect(ctx,x-6,y-28+b,12,3.2,1.4); ctx.fill(); }   // 墨鏡
+    }else{
+      ctx.fillStyle='#e8c25a'; ctx.beginPath(); ctx.arc(x,y-28.5+b,8.4,Math.PI,0); ctx.fill();                      // 金色刺蝟頭
+      for(var k=-6;k<=6;k+=3){ ctx.beginPath(); ctx.moveTo(x+k-2,y-33+b); ctx.lineTo(x+k,y-38.5+b); ctx.lineTo(x+k+2,y-33+b); ctx.closePath(); ctx.fill(); }
+    }
+  }else if(hs==='luck'){
+    ctx.fillStyle='#1d1a1c';                                                                   // 烏黑長髮
+    ctx.beginPath(); ctx.arc(x,y-27+b,8.7,Math.PI,0); ctx.fill();
+    if(back){ rrect(ctx,x-8.6,y-28+b,17.2,20,4); ctx.fill(); }
+    else { rrect(ctx,x-9,y-28+b,4,19,2); ctx.fill(); rrect(ctx,x+5,y-28+b,4,19,2); ctx.fill(); }
+    var cols=['#e0353b','#f2c230','#ffffff','#1f1f1f','#2d6fb0'];
+    for(var i=0;i<6;i++){ ctx.fillStyle=cols[i%cols.length]; ctx.fillRect(x-8+i*2.7,y-31.5+b,2.7,2.2); }   // 彩色織紋頭帶
+    if(!back){ for(i=0;i<5;i++){ ctx.fillStyle=cols[(i+1)%cols.length]; ctx.fillRect(x-7+i*2.8,y-14.5+b,2.8,2.4); } }   // 胸前織帶
+    ctx.fillStyle='#1f1f24'; rrect(ctx,x-7,y-9+b,14,5,1.5); ctx.fill();                       // 黑色長裙
   }
 }
 function drawDog(x,y,d,time){
@@ -2033,15 +2209,19 @@ function btGrid(x,y,w,h,items,cur,pick,fs,disabled){
    上方顯示站點進度）→ 淡出、切換城市 → 淡入到對方城市。點一下或按 E 可以跳到抵達。 */
 var RIDE={on:false};
 var ROUTES={
-  tc:{title:'高鐵台中站 → 板橋站', sub:'抵達後轉乘捷運往永和', st:['台中','苗栗','新竹','桃園','板橋'],
+  'tc-yh':{brand:'THSR · 台灣高鐵',tag:'THSR',stripe:'#e2762f',title:'高鐵台中站 → 板橋站', sub:'抵達後轉乘捷運往永和', st:['台中','苗栗','新竹','桃園','板橋'],
       arrive:'板橋站到了。轉乘捷運，前往永安市場站……', log:'從高鐵台中站搭高鐵到板橋，再轉捷運到永和'},
-  yh:{title:'板橋站 → 高鐵台中站', sub:'先從永安市場站搭捷運到板橋', st:['板橋','桃園','新竹','苗栗','台中'],
-      arrive:'高鐵台中站到了。', log:'從永和搭捷運到板橋，轉高鐵回台中'}
+  'yh-tc':{brand:'THSR · 台灣高鐵',tag:'THSR',stripe:'#e2762f',title:'板橋站 → 高鐵台中站', sub:'先從永安市場站搭捷運到板橋', st:['板橋','桃園','新竹','苗栗','台中'],
+      arrive:'高鐵台中站到了。', log:'從永和搭捷運到板橋，轉高鐵回台中'},
+  'tc-td':{brand:'TRA · 台鐵普悠瑪號',tag:'TRA',stripe:'#c8262f',sea:1,title:'台中車站 → 台東車站', sub:'經南迴線，沿著太平洋走',
+      st:['台中','嘉義','台南','高雄','枋寮','台東'], arrive:'台東車站到了。外面的天空好大。', log:'從台中車站搭普悠瑪號，經南迴線到台東'},
+  'td-tc':{brand:'TRA · 台鐵普悠瑪號',tag:'TRA',stripe:'#c8262f',sea:1,title:'台東車站 → 台中車站', sub:'經南迴線回到西部',
+      st:['台東','枋寮','高雄','台南','嘉義','台中'], arrive:'台中車站到了。', log:'從台東搭普悠瑪號回台中'}
 };
 var RT={fade:0.6, title:1.5, train:7.6, black:8.8, end:9.5};
 function startRide(gate){
   if(RIDE.on)return;
-  RIDE={on:true, t:0, from:state.world, to:gate.to, r:ROUTES[state.world], dist:0, swapped:false};
+  RIDE={on:true, t:0, from:state.world, to:gate.to, r:ROUTES[state.world+'-'+gate.to], dist:0, swapped:false};
   keys={}; joyReset(); measureSafe();
   document.body.classList.add('in-ride');
   SND.setMode('none');
@@ -2060,8 +2240,8 @@ function rideFrame(dt,time){
   if(t<RT.title){
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
     var a=smooth((t-RT.fade)/0.4);
-    ctx.globalAlpha=a; ctx.textAlign='center'; ctx.fillStyle='#e2762f';
-    ctx.font='700 13px "DM Mono",monospace'; ctx.fillText('THSR · 台灣高鐵',W/2,H/2-30);
+    ctx.globalAlpha=a; ctx.textAlign='center'; ctx.fillStyle=RIDE.r.stripe;
+    ctx.font='700 13px "DM Mono",monospace'; ctx.fillText(RIDE.r.brand,W/2,H/2-30);
     ctx.fillStyle='#f4f5f2'; ctx.font='700 '+Math.round(Math.min(26,W/16))+'px "Noto Sans TC",sans-serif';
     ctx.fillText(RIDE.r.title,W/2,H/2+4);
     ctx.fillStyle='#a9b3ad'; ctx.font='500 13px "Noto Sans TC",sans-serif'; ctx.fillText(RIDE.r.sub,W/2,H/2+30);
@@ -2075,7 +2255,7 @@ function rideFrame(dt,time){
     return;
   }
   if(t<RT.black){
-    if(!RIDE.swapped){ RIDE.swapped=true; loadWorld(RIDE.to,true); SND.blip(784,0.3,0,'sine',0.05); SND.blip(988,0.5,0.3,'sine',0.05); }
+    if(!RIDE.swapped){ RIDE.swapped=true; loadWorld(RIDE.to,RIDE.from); SND.blip(784,0.3,0,'sine',0.05); SND.blip(988,0.5,0.3,'sine',0.05); }
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
     ctx.globalAlpha=smooth((t-RT.train)/0.3); ctx.textAlign='center'; ctx.fillStyle='#f4f5f2';
     ctx.font='500 '+Math.round(Math.min(18,W/22))+'px "Noto Sans TC",sans-serif';
@@ -2090,9 +2270,8 @@ function finishRide(){
   SND.setMode('field');
   var W=WORLDS[state.world];
   toast('抵達'+W.name);
-  showCard('抵達',W.name,W.pois.filter(function(p){return p.tag==='車站';})[0].t,
-    state.world==='yh'?'從永安市場站的出口走上來，旁邊就是市場。往西是四號公園，往北走到底是新店溪。'
-                      :'高鐵站前的廣場很寬。往東沿著台灣大道走，可以到草悟道、審計新村和台中車站。');
+  var ag=state.arrGate||W.gates[0];
+  showCard('抵達',W.name,ag.place,ag.desc);
   addLog(RIDE.r.log+'（'+clockStr()+'）');
   switchTab('now'); save();
 }
@@ -2107,12 +2286,23 @@ function drawTrainScene(W,H,t,time){
   g.addColorStop(0,mix('#a9d4ea','#141d33')); g.addColorStop(1,mix('#eef4e2','#34405a'));
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   var hz=H*0.56;
+  if(RIDE.r.sea){                       // 南迴線：遠方是太平洋，海面上有浪花和一座小島
+    var sg=ctx.createLinearGradient(0,hz-70,0,hz); sg.addColorStop(0,mix('#5aa9d6','#1b2e4c')); sg.addColorStop(1,mix('#2f7fb6','#13223a'));
+    ctx.fillStyle=sg; ctx.fillRect(0,hz-70,W,72);
+    ctx.fillStyle=mix('#7f9a86','#24303f'); var isx=W*0.7-((d*0.02)%(W*1.6));
+    ctx.beginPath(); ctx.ellipse(isx,hz-70,60,14,0,Math.PI,0); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=1.5;
+    for(var wv=0;wv<16;wv++){ var wy=hz-60+hash(wv,2)*56, wx=((hash(wv,8)*W*1.5)-(d*0.12))%(W*1.5); if(wx<0)wx+=W*1.5;
+      ctx.beginPath(); ctx.moveTo(wx-20,wy); ctx.lineTo(wx,wy); ctx.stroke(); }
+    hz-=70;                             // 山退到海的後面
+  }
   // 遠山
   ctx.fillStyle=mix('#9fb8ae','#27334a');
   var stp=60, b0=Math.floor(d*0.06/stp), f0=(d*0.06)%stp, x;
   ctx.beginPath(); ctx.moveTo(0,hz);
   for(var j=-1;j<W/stp+2;j++){ ctx.lineTo(j*stp-f0,hz-(30+hash(b0+j,3)*70)); }
   ctx.lineTo(W,hz); ctx.closePath(); ctx.fill();
+  if(RIDE.r.sea){ hz+=70; }
   // 中景：樹叢與房子
   var b2=Math.floor(d*0.3/90), off2=(d*0.3)%90;
   for(var j2=-1;j2<W/90+2;j2++){
@@ -2153,7 +2343,7 @@ function drawTrainScene(W,H,t,time){
     ctx.fillStyle='#2f3b52'; ctx.fillRect(x1+th*0.2,ty+th*0.24,bodyEnd-x1-th*0.4,th*0.24);      // 窗帶
     ctx.fillStyle=n>0.3?'rgba(255,226,160,.9)':'#6d8aa0';
     for(var wx=x1+th*0.35;wx<bodyEnd-th*0.5;wx+=th*0.42) ctx.fillRect(wx,ty+th*0.28,th*0.28,th*0.16);
-    ctx.fillStyle='#e2762f'; ctx.fillRect(x1,ty+th*0.6,(c===0?x2-th*0.25:bodyEnd)-x1,th*0.09);   // 橘色腰線
+    ctx.fillStyle=RIDE.r.stripe; ctx.fillRect(x1,ty+th*0.6,(c===0?x2-th*0.25:bodyEnd)-x1,th*0.09);   // 腰線：高鐵橘、普悠瑪紅
     ctx.fillStyle='#2f3b52'; ctx.fillRect(x1,ty+th*0.7,(c===0?x2-th*0.35:bodyEnd)-x1,th*0.04);
     ctx.fillStyle='#3a3f48'; ctx.fillRect(x1+th*0.4,ty+th,th*0.9,4); ctx.fillRect(bodyEnd-th*1.3,ty+th,th*0.9,4);
   }
@@ -2170,7 +2360,7 @@ function drawTrainScene(W,H,t,time){
   var st=RIDE.r.st, top=safeIn.t+14, px0=28, px1=W-28;
   var p=smooth((t-RT.title)/(RT.train-RT.title-0.4));
   ctx.fillStyle='rgba(20,26,34,.72)'; rrect(ctx,12,top,W-24,74,12); ctx.fill();
-  ctx.fillStyle='#e2762f'; ctx.font='700 11px "DM Mono",monospace'; ctx.textAlign='left'; ctx.fillText('THSR',px0,top+20);
+  ctx.fillStyle=RIDE.r.stripe; ctx.font='700 11px "DM Mono",monospace'; ctx.textAlign='left'; ctx.fillText(RIDE.r.tag,px0,top+20);
   ctx.fillStyle='#f4f5f2'; ctx.font='700 14px "Noto Sans TC",sans-serif'; ctx.fillText(RIDE.r.title,px0+44,top+20);
   var by=top+44;
   ctx.strokeStyle='rgba(244,245,242,.35)'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(px0,by); ctx.lineTo(px1,by); ctx.stroke();
@@ -2213,7 +2403,7 @@ function drawMini(){
   // 有名牌的主角（泡芙花花、Hank）在小地圖上畫成會閃的星形，顏色跟衣服一樣好認
   var blink=0.8+0.2*Math.sin(Date.now()/260);
   for(var ni=0;ni<NPCS.length;ni++){var nn=NPCS[ni]; if(!nn.named)continue;
-    var nx=nn.x*sx, ny=nn.y*sy, col=nn.hs==='puff'?'#ef4f8a':'#1f6fc0';
+    var nx=nn.x*sx, ny=nn.y*sy, col=nn.star||(nn.hs==='puff'?'#ef4f8a':'#1f6fc0');
     mmx.globalAlpha=blink; mmx.fillStyle=col;
     mmx.beginPath();
     for(var sp=0;sp<10;sp++){var ang=-Math.PI/2+sp*Math.PI/5, rr=sp%2?5:11;   // 小地圖顯示時會縮小，星星要畫大
