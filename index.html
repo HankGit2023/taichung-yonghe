@@ -379,7 +379,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
         <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。一起出遊時換成隊伍裡的人，就是<b>換隊長</b>：大家原地繼續一起走；換成隊伍外的人，同伴就留在原地。</p>
-        <p class="note">任何角色走到桑董車行的二手車旁邊按 <b>E</b> 都可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）就停車，車停在你旁邊，之後走過去還能再開；開回車行原本的車位附近再下車就算還車。</p>
+        <p class="note">任何角色走到桑董車行的二手車旁邊按 <b>E</b> 都可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車（開車時 R 或右下角「加速」鈕切換加速模式，按住 Shift 暫時加速），再按 E（手機按「下車」）就停車，車停在你旁邊，之後走過去還能再開；開回車行原本的車位附近再下車就算還車。</p>
         <p class="note">每個城市路的盡頭都有<b>國道交流道</b>（綠色指示牌）。試駕開到牌子旁按 <b>E</b> 就上高速公路，過場後從另一個城市的交流道下來繼續開：台中↔永和走國道1號、台中↔台東走國道3號接南迴公路、永和↔台東走國道5號穿過雪山隧道接蘇花改。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
@@ -1012,7 +1012,7 @@ var state={
 var KEY='tc-yh-stroll-v1';
 function save(){
   recordPos();
-  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},tod:state.tod||'auto',btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},tod:state.tod||'auto',boost:state.boost?1:0,btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
 }
 function load(){
   try{
@@ -1029,6 +1029,7 @@ function load(){
       if(d.pos&&typeof d.pos==='object')state.pos=d.pos;
       if(d.cars&&typeof d.cars==='object')state.cars=d.cars;
       if(d.tod==='day'||d.tod==='dusk'||d.tod==='night')state.tod=d.tod;
+      if(d.boost)state.boost=1;
       if(typeof d.btWins==='number')state.btWins=d.btWins;
       if(d.mUnlocked)state.mUnlocked=1;
       if(Array.isArray(d.party))state.party=d.party;
@@ -3059,7 +3060,7 @@ function startDrive(car){
     var offs=[1.2,-1.2,2.4,-2.4,0];
     for(var oi=0;oi<offs.length;oi++){ var ty2=(car.y+offs[oi])*TS-6; if(canDrive(state.px,ty2)&&canDrive(state.px+40,ty2)){ state.py=ty2; break; } }
   }
-  keys={}; joyReset();
+  keys={}; joyReset(); syncRunBtn();
   [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,i*0.09,'sawtooth',0.035);});   // 發動引擎
   var sang=NPCS.filter(function(n){return n.n==='桑董說車';})[0];
   if(sang&&!parked)say(sang,'喘…小心開…喘…',3.5);
@@ -3070,7 +3071,7 @@ function startDrive(car){
 }
 function stopDrive(){
   var d=Math.round(DRIVE.dist/TS), id=DRIVE.id, cx=state.px/TS, cy=state.py/TS, ang=DRIVE.ang;
-  DRIVE.on=false;
+  DRIVE.on=false; syncRunBtn();
   // 停回車行原本的車位附近 → 算還車
   var home=null;
   if(state.world==='tc') props.forEach(function(pp){ if(pp.t==='car'&&pp.id===id) home=pp; });
@@ -3105,7 +3106,8 @@ function driveStep(dt,dx,dy,push){
     var ta=Math.atan2(dy,dx), da=((ta-DRIVE.ang)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;
     DRIVE.ang+=Math.sign(da)*Math.min(Math.abs(da),4.2*dt);                         // 方向盤慢慢轉過去
     var turnSlow=Math.abs(da)>1.6?0.4:1;                                            // 大迴轉時先慢下來
-    DRIVE.speed=Math.min(340*turnSlow,DRIVE.speed+420*dt);
+    var boost=state.boost||keys['shift'];                                          // 加速模式（開車時的 R／加速鈕，或按住 Shift）
+    DRIVE.speed=Math.min((boost?580:340)*turnSlow,DRIVE.speed+(boost?640:420)*dt);
   }else{
     DRIVE.speed = DRIVE.speed>0 ? Math.max(0,DRIVE.speed-520*dt) : Math.min(0,DRIVE.speed+520*dt);
   }
@@ -3138,12 +3140,19 @@ function drawTopCar(x,y,ang,col,lights){         // 從上往下看的車（開�
   ctx.restore();
 }
 function drawDriveCar(x,y,time){
+  if(DRIVE.speed>360){                              // 開很快：車尾拉出速度線
+    var a=DRIVE.ang, k=(DRIVE.speed-360)/220;
+    ctx.save(); ctx.translate(x,y-4); ctx.rotate(a);
+    ctx.strokeStyle='rgba(255,255,255,'+(0.55*k)+')'; ctx.lineWidth=1.6;
+    [-6,-2,2,6].forEach(function(o,i){ var L=18+((time*60+i*7)%14); ctx.beginPath(); ctx.moveTo(-18,o); ctx.lineTo(-18-L*k,o); ctx.stroke(); });
+    ctx.restore();
+  }
   drawTopCar(x,y,DRIVE.ang,DRIVE.col,true);
   // 頭上掛名牌，知道車裡是誰
   ctx.font='500 10.5px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
   var pas=[]; buddyParty().forEach(function(n){ pas.push(n.n); if(n.dog&&n.dog.name)pas.push(n.dog.name); });
   if(PDOG&&PDOG.name)pas.push(PDOG.name);
-  var lb=(PL.label||'你')+' 試駕中'+(pas.length?' · 載著 '+pas.join('、'):''), tw=ctx.measureText(lb).width;
+  var lb=(PL.label||'你')+(state.boost?' 加速中':' 試駕中')+(pas.length?' · 載著 '+pas.join('、'):''), tw=ctx.measureText(lb).width;
   ctx.fillStyle='rgba(24,30,26,.72)'; rrect(ctx,x-tw/2-6,y-38,tw+12,16,8); ctx.fill();
   ctx.fillStyle='#f2f6f0'; ctx.fillText(lb,x,y-27); ctx.textAlign='left';
 }
@@ -3385,12 +3394,20 @@ syncAudioBtn(false);
    全螢幕整個 document.documentElement，瀏覽器網址列會收起，
    浮動小地圖和 panel 都還在；iOS Safari 不支援就只能加到主畫面達到類似效果。 */
 var rBtn=document.getElementById('rbtn');
-function syncRunBtn(){
-  rBtn.textContent=state.run?'跑':'走';
-  rBtn.classList.toggle('on',!!state.run);
-  rBtn.setAttribute('aria-pressed',state.run?'true':'false');
+function syncRunBtn(){                           // 走路時是「走／跑」，開車時同一顆鈕變成「加速」
+  var driving=typeof DRIVE!=='undefined'&&DRIVE.on, on=driving?!!state.boost:!!state.run;
+  rBtn.textContent=driving?'加速':(state.run?'跑':'走');
+  rBtn.classList.toggle('on',on);
+  rBtn.setAttribute('aria-pressed',on?'true':'false');
+  rBtn.setAttribute('aria-label',driving?'加速模式切換':'走路／跑步切換');
 }
 function toggleRun(){
+  if(typeof DRIVE!=='undefined'&&DRIVE.on){
+    state.boost=state.boost?0:1; syncRunBtn(); save();
+    toast(state.boost?'加速模式！':'回到一般速度');
+    if(state.boost)[220,330,440].forEach(function(f,i){SND.blip(f,0.1,i*0.05,'sawtooth',0.03);});
+    return;
+  }
   state.run=state.run?0:1; syncRunBtn(); save();
   toast(state.run?'切換成跑步':'切換成走路');
 }
