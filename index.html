@@ -319,7 +319,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
       <div class="who" id="who" role="dialog" aria-label="選擇角色">
         <div class="who-box">
           <div class="who-head"><b>你想當誰？</b><button class="who-close" id="who-close" type="button" aria-label="關閉">✕</button></div>
-          <div class="who-sub">選一個人，從他平常在的地方開始走。之後可以按右上角的 👤 換人。</div>
+          <div class="who-sub">選一個人，從他上次停下的地方繼續走。換人時，原本的人會留在原地。</div>
           <div class="who-grid" id="who-grid"></div>
         </div>
       </div>
@@ -371,6 +371,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">台中、永和、台東是三張地圖。台中的<b>高鐵台中站</b>前按 <b>E</b> 搭高鐵到板橋、再轉捷運到永和；台中的<b>台中車站</b>（紅磚老站房旁）前按 <b>E</b> 搭台鐵普悠瑪號經南迴線到台東。永和的捷運永安市場站、台東的台東車站都可以搭回台中。坐車途中點一下可以直接跳到抵達。</p>
         <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
+        <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。</p>
         <p class="note">當 <b>Hank</b> 時，走到桑董車行的二手車旁邊按 <b>E</b> 可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）結束，車會開回車行。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
@@ -911,10 +912,13 @@ function setupPlayer(){
   }else{ PDOG=null; POWN=null; }
   state.pIdleT=4; state.pSayT=0;
 }
-function placeAtHome(){                         // 在自己的城市就站到自己的老位置
-  var ch=charById(state.char), n=charNpc(ch);
-  if(!n||state.world!==ch.world)return;
-  state.px=n.ox*TS; state.py=n.oy*TS;
+function placeAtHome(){                         // 有記錄就站回上次的位置，沒有就站到自己的老位置
+  var ch=charById(state.char), n=charNpc(ch), p=state.pos&&state.pos[ch.id];
+  if(p&&p.w===state.world){ state.px=p.x*TS; state.py=p.y*TS; }
+  else{
+    if(!n||state.world!==n.curWorld)return;
+    state.px=n.ox*TS; state.py=n.oy*TS;
+  }
   nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
   if(typeof cam!=='undefined'&&cam){ cam.x=state.px-(cv.vw||600)/2; cam.y=state.py-(cv.vh||400)/2; }
   if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
@@ -924,6 +928,22 @@ TC.npcs.concat(YH.npcs,TD.npcs).forEach(function(n){n.x+=0.5;n.y+=0.5;n.ox=n.x;n
   if(n.pet) n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0,name:n.petName||''};});
 
 // arrive：從別的城市坐車過來就站在出口，否則（新開遊戲）站在出生點
+/* ---- 每個角色記住自己的位置 ----
+   state.pos[角色id] = {w:城市, x, y}（格）。切換角色時，原本那個人就留在原地變成 NPC；
+   切回來就從那裡接著走。NPC 的 curWorld 是他現在所在的城市（不一定是原本的城市）。 */
+TC.npcs.forEach(function(n){n.curWorld='tc';}); YH.npcs.forEach(function(n){n.curWorld='yh';}); TD.npcs.forEach(function(n){n.curWorld='td';});
+function recordPos(){
+  if(!state.char||(typeof RIDE!=='undefined'&&RIDE.on))return;
+  state.pos=state.pos||{};
+  state.pos[state.char]={w:state.world,x:+(state.px/TS).toFixed(2),y:+(state.py/TS).toFixed(2)};
+}
+function applyCharPositions(){                  // 把扮演過的人放回他們被留下的地方
+  CHARS.forEach(function(c){
+    var p=state.pos&&state.pos[c.id], n=charNpc(c); if(!p||!n)return;
+    n.curWorld=p.w; n.ox=n.x=n.hx=n.tx=p.x; n.oy=n.y=n.hy=n.ty=p.y;
+    if(n.dog){ n.dog.x=p.x+0.9; n.dog.y=p.y+0.2; }
+  });
+}
 function loadWorld(id,from){
   var W=WORLDS[id]||TC;
   state.world=W.id;
@@ -932,7 +952,7 @@ function loadWorld(id,from){
   var me=charById(state.char).npc;               // 自己扮演的人不會出現在地圖上
   POIS=W.pois; ITEMS=W.items; AREAS=W.areas; GATES=W.gates;
   var party=allNpcs().filter(function(n){return n.inParty;});      // 一起出遊的同伴跟著你換城市
-  NPCS=W.npcs.filter(function(n){return n.n!==me&&!n.inParty;}).concat(party);
+  NPCS=allNpcs().filter(function(n){return n.curWorld===W.id&&n.n!==me&&!n.inParty;}).concat(party);
   ITEMS.forEach(function(it){nudge(it);});
   NPCS.forEach(function(n){ if(n.inParty)return; nudge(n);n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.sayT=0;
     if(n.pet){ n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0,name:n.petName||''}; }
@@ -951,12 +971,13 @@ function loadWorld(id,from){
 /* ============ 狀態 ============ */
 var state={
   px:44.5*TS, py:45*TS, dir:'down', moving:0, anim:0, hold:0, sprint:0, dustT:0,
-  world:'tc', clock: 8*60, found:{}, visited:{}, log:[], tab:'now', hits:0,
+  world:'tc', pos:{}, clock: 8*60, found:{}, visited:{}, log:[], tab:'now', hits:0,
   party:[], idleT:0, puffT:0
 };
 var KEY='tc-yh-stroll-v1';
 function save(){
-  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
+  recordPos();
+  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
 }
 function load(){
   try{
@@ -970,6 +991,7 @@ function load(){
       if(d.world==='tc'||d.world==='yh'||d.world==='td')state.world=d.world;
       if(d.run)state.run=1;
       if(typeof d.char==='string'&&d.char)state.char=d.char;
+      if(d.pos&&typeof d.pos==='object')state.pos=d.pos;
       if(typeof d.btWins==='number')state.btWins=d.btWins;
       if(d.mUnlocked)state.mUnlocked=1;
       if(Array.isArray(d.party))state.party=d.party;
@@ -995,6 +1017,7 @@ function nudge(o){   // 把東西移到最近的可走格
 }
 load();
 allNpcs().forEach(function(n){ if(n.buddy&&state.party.indexOf(n.n)>=0)n.inParty=1; });
+applyCharPositions();
 loadWorld(state.world||'tc');
 placeAtHome();
 
@@ -2570,7 +2593,7 @@ function buddyLeave(n){
   n.inParty=0; state.party=state.party.filter(function(q){return q!==n.n;});
   say(n,'那我先回家囉～',3);
   toast(n.n+'先回家了');
-  var home=TC.npcs.indexOf(n)>=0?'tc':YH.npcs.indexOf(n)>=0?'yh':'td';
+  var home=n.curWorld;
   if(home===state.world){ n.hx=n.ox; n.hy=n.oy; n.tx=n.ox; n.ty=n.oy; n.wait=0.5; }
   else{ NPCS=NPCS.filter(function(q){return q!==n;}); n.x=n.ox; n.y=n.oy; if(n.dog){n.dog.x=n.ox+0.9;n.dog.y=n.oy+0.2;} }
   save();
@@ -3177,6 +3200,7 @@ function buildWho(){
   });
 }
 function openWho(){
+  if(MJ.on||RIDE.on||BT.on)return;              // 打牌、坐車、對戰中不能換人
   buildWho(); whoOpen=true; whoEl.classList.add('on'); document.body.classList.add('in-who');
   keys={}; joyReset();
 }
@@ -3186,9 +3210,13 @@ function closeWho(){
 }
 function pickChar(id){
   var ch=charById(id);
+  if(DRIVE.on) stopDrive();
+  recordPos();                                    // 現在這個人留在原地
   state.char=ch.id;
   allNpcs().forEach(function(n){n.inParty=0;n.ask=0;}); state.party=[];   // 換人就解散隊伍
-  loadWorld(ch.world,null); placeAtHome();
+  applyCharPositions();
+  var cp=state.pos[ch.id];
+  loadWorld(cp?cp.w:(charNpc(ch)?charNpc(ch).curWorld:ch.world),null); placeAtHome();
   closeWho(); save(); updateHUD(); drawMini();
   toast('你現在是 '+ch.name);
   showCard('角色',ch.name,ch.where,ch.desc);
