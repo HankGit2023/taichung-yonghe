@@ -1408,7 +1408,7 @@ function drawStyle(x,y,c,face,b,hs){
       for(var k=-6;k<=6;k+=3){ ctx.beginPath(); ctx.moveTo(x+k-2,y-33+b); ctx.lineTo(x+k,y-38.5+b); ctx.lineTo(x+k+2,y-33+b); ctx.closePath(); ctx.fill(); }
     }
   }else if(hs==='hank'){
-    // Hank：黑色短直髮（短瀏海、兩側只到鬢角）、粗眉、小黑眼、微笑；
+    // Hank：黑色鴨舌帽＋黑色短直髮（兩側只到鬢角）、粗眉、小黑眼、微笑；
     //       深灰拉鍊帽T敞開（粉紅帽繩）＋白T；黑色長褲、黑球鞋白鞋底
     var HC='#1c1916', HD='#3d3530';
     ctx.fillStyle='#3b3b40'; rrect(ctx,x-7.5,y-19.5+b,15,11,4); ctx.fill();                          // 帽T
@@ -1435,14 +1435,26 @@ function drawStyle(x,y,c,face,b,hs){
       ctx.moveTo(x-8.8,y-31+b); ctx.lineTo(x+8.8,y-31+b); ctx.lineTo(x+8.8,y-27.6+b);
       ctx.lineTo(x+sx+1.5,y-27.9+b); ctx.lineTo(x-8.8,y-28.4+b); ctx.closePath(); ctx.fill();
       rrect(ctx,x-9,y-29.5+b,2.6,3.6,1); ctx.fill(); rrect(ctx,x+6.4,y-29.5+b,2.6,3.6,1); ctx.fill();   // 短鬢角
-      ctx.strokeStyle=HD; ctx.lineWidth=0.5; ctx.beginPath();                                       // 幾條髮絲
-      ctx.moveTo(x-3+sx,y-30.5+b); ctx.lineTo(x-3.4+sx,y-27+b); ctx.moveTo(x+2.5+sx,y-30.5+b); ctx.lineTo(x+2.2+sx,y-26.8+b); ctx.stroke();
       [x-3+sx,x+3+sx].forEach(function(ex,k){
         ctx.fillStyle='#1a1512'; ctx.save(); ctx.translate(ex,y-25.3+b); ctx.rotate(k?-0.14:0.14); ctx.fillRect(-2.4,-0.7,4.8,1.5); ctx.restore();   // 往上挑的粗眉
         ctx.fillStyle='#1a1412'; ctx.beginPath(); ctx.ellipse(ex,y-23.2+b,0.95,1.3,0,0,6.283); ctx.fill();                           // 小黑眼
       });
       ctx.strokeStyle='#7a4a38'; ctx.lineWidth=0.8; ctx.beginPath();                                  // 微笑
       ctx.moveTo(x-2+sx,y-19.8+b); ctx.quadraticCurveTo(x+sx,y-18.4+b,x+2+sx,y-19.8+b); ctx.stroke();
+    }
+    // 黑色鴨舌帽：帽身蓋住頭頂、正面帽簷往前伸、側面帽簷朝臉的方向、背面有調節帶
+    var CAP='#141416', BRIM='#0a0a0c', csx=side*1.4;
+    ctx.fillStyle=CAP; ctx.beginPath(); ctx.arc(x,y-28.3+b,9.3,Math.PI,0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#2a2a2e'; ctx.fillRect(x-9.2,y-29+b,18.4,1.1);                                    // 帽身下緣的線
+    ctx.beginPath(); ctx.arc(x,y-37.4+b,1.1,0,6.283); ctx.fill();                                    // 頂上的扣子
+    if(back){
+      ctx.fillStyle=c; rrect(ctx,x-2.2,y-30.4+b,4.4,2.2,1); ctx.fill();                              // 後面調節帶的開口
+      ctx.fillStyle='#2a2a2e'; ctx.fillRect(x-2.6,y-30.6+b,5.2,0.8);
+    }else if(side){
+      ctx.fillStyle=BRIM; rrect(ctx,x+side*3-(side<0?10:0),y-29.2+b,10,2.2,1.1); ctx.fill();          // 側面帽簷
+    }else{
+      ctx.fillStyle=BRIM; ctx.beginPath(); ctx.ellipse(x+csx,y-28+b,9.8,2.4,0,0,6.283); ctx.fill();    // 正面帽簷
+      ctx.fillStyle='rgba(255,255,255,.75)'; ctx.fillRect(x-1.2,y-33.5+b,2.4,1.6);                   // 帽子正面的小標
     }
   }else if(hs==='luck'){
     ctx.fillStyle='#1d1a1c';                                                                   // 烏黑長髮
