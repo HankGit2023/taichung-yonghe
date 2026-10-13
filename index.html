@@ -340,7 +340,7 @@ body.focus-mode .pad{
           <li><kbd>M / F</kbd><span>聲音開關 / 全螢幕切換</span></li>
         </ul>
         <p class="note">台中和永和是兩張地圖。走到<b>高鐵台中站</b>前按 <b>E</b> 就能搭高鐵到板橋、再轉捷運到永和；在永和走到<b>捷運永安市場站</b>前按 <b>E</b> 就能回台中。坐車途中點一下可以直接跳到抵達。</p>
-    <p class="note"><b>泡芙花花</b>在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
+    <p class="note"><b>泡芙花花</b>（身邊跟著一隻奶油色的臘腸狗）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
         <div class="act">
           <button id="btn-rest">休息一下（跳到下個時段）</button>
@@ -630,7 +630,7 @@ var TC={
    {x:15,y:61,n:'高鐵車票',w:'台中・高鐵站',d:'台中到板橋，自由座。'}
   ],
   npcs:[
-   {x:44,y:22,c:'#f8e7da',c2:'#f5f5f0',n:'泡芙花花',named:1,hs:'puff',l:['草悟道的樹好多，好想在這裡野餐！','審計新村那家甜點店，你吃過了嗎？','下次去永和，記得幫我帶一杯豆漿回來。']},
+   {x:44,y:22,c:'#f8e7da',c2:'#f5f5f0',n:'泡芙花花',named:1,hs:'puff',pet:'dachshund',l:['草悟道的樹好多，好想在這裡野餐！','審計新村那家甜點店，你吃過了嗎？','下次去永和，記得幫我帶一杯豆漿回來。']},
    {x:30,y:19,c:'#e9e2d4',c2:'#3c4a58',n:'歌劇院導覽員',l:['這棟樓裡面找不到一根直的柱子喔。','晚上的外牆比白天好看。','表演快開始了，記得手機靜音。']},
    {x:64,y:42,c:'#efe1cf',c2:'#a8453a',n:'市場阿姨',l:['菜頭粿剛起鍋，要不要一塊？','我們這攤開四十年了。','早點來，十點就賣完了。']},
    {x:70,y:10,c:'#f0e6d8',c2:'#3f7f68',n:'一中街的學生',l:['補習班下課就是來這裡。','這家雞排要排二十分鐘。','手搖飲半糖少冰，不能再甜了。']},
@@ -734,7 +734,8 @@ function loadWorld(id,arrive){
   W.build();
   POIS=W.pois; ITEMS=W.items; NPCS=W.npcs; AREAS=W.areas; GATES=W.gates;
   ITEMS.forEach(function(it){nudge(it);});
-  NPCS.forEach(function(n){nudge(n);n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.sayT=0;});
+  NPCS.forEach(function(n){nudge(n);n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.sayT=0;
+    if(n.pet){ n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0}; }});
   state.px=W.spawn.x*TS; state.py=W.spawn.y*TS;
   if(typeof cam!=='undefined'&&cam){ cam.x=state.px-(cv.vw||600)/2; cam.y=state.py-(cv.vh||400)/2; }
   if(typeof mmBase!=='undefined'&&mmBase) rebuildMini();
@@ -1144,6 +1145,53 @@ function drawPuff(x,y,face,b){
   ctx.beginPath(); ctx.arc(tx,ty+1,1.1,0,6.283); ctx.fill();
 }
 
+/* ---- 奶油臘腸狗：永遠黏在泡芙花花身後 ----
+   目標點在主人行進方向的反側、稍微往下（比較像被牽著走）；離太遠就加速，超過 4 格直接瞬移回來。
+   停下來一陣子會坐下，尾巴一直搖。 */
+function stepDog(n,dt){
+  var d=n.dog;
+  if(d.sayT>0)d.sayT-=dt;
+  var tx=n.x+0.85*d.side, ty=n.y+0.25;
+  var dx=tx-d.x, dy=ty-d.y, dist=Math.hypot(dx,dy);
+  if(dist>4){ d.x=tx; d.y=ty; dist=0; }
+  d.moving=0;
+  if(dist>0.08){
+    var sp=Math.min(dist, Math.max(1.3, dist*4)*dt);
+    d.x+=dx/dist*sp; d.y+=dy/dist*sp; d.moving=1; d.walk+=dt; d.sit=0;
+    if(Math.abs(dx)>0.03)d.dir=dx>0?1:-1;
+  }else{
+    d.sit+=dt;
+    var face=n.x-d.x; if(Math.abs(face)>0.05)d.dir=face>0?1:-1;   // 停下來就轉頭看主人
+  }
+}
+function drawDog(x,y,d,time){
+  var CREAM='#f1dcb4', SHADE='#dcc092', EAR='#c79a68', DARK='#3a2a22';
+  var f=d.dir, sit=d.sit>2.5, step=d.moving?Math.sin(d.walk*16):0;
+  ctx.save(); ctx.translate(x,y); ctx.scale(f,1);           // 一律畫成面向右，往左走就水平翻轉
+  ctx.fillStyle='rgba(28,40,24,.18)'; ctx.beginPath(); ctx.ellipse(0,1,11,2.8,0,0,6.283); ctx.fill();
+  // 尾巴（一直搖）
+  var wag=Math.sin(time*(d.moving?14:9))*0.5;
+  ctx.strokeStyle=SHADE; ctx.lineWidth=2.2; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-9,sit?-4:-7); ctx.quadraticCurveTo(-13,(sit?-6:-10)+wag*3,-14,(sit?-9:-13)+wag*4); ctx.stroke();
+  // 短腿
+  ctx.fillStyle=SHADE;
+  var lh=sit?1.5:3.2;
+  [[-7,step],[-4,-step],[4,-step],[7,step]].forEach(function(l){ ctx.fillRect(l[0]-1,-lh+l[1]*0.6,2.2,lh+0.5); });
+  // 長長的身體
+  ctx.fillStyle=CREAM;
+  if(sit){ ctx.beginPath(); ctx.ellipse(-1,-5,8.5,4.2,-0.25,0,6.283); ctx.fill(); }
+  else{ rrect(ctx,-10,-9,19,6.5,3.2); ctx.fill(); ctx.fillStyle=SHADE; ctx.fillRect(-8,-3.6,15,1.2); }
+  // 頭與長鼻子
+  var hx=sit?7:9.5, hy=sit?-10:-10;
+  ctx.fillStyle=CREAM; ctx.beginPath(); ctx.arc(hx,hy,3.8,0,6.283); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(hx+3.6,hy+1.3,3,1.9,0,0,6.283); ctx.fill();
+  ctx.fillStyle=DARK; ctx.beginPath(); ctx.arc(hx+6.4,hy+1,1.05,0,6.283); ctx.fill();   // 鼻頭
+  ctx.beginPath(); ctx.arc(hx+0.9,hy-0.9,0.85,0,6.283); ctx.fill();                  // 眼睛
+  // 垂耳
+  ctx.fillStyle=EAR; ctx.beginPath(); ctx.ellipse(hx-1.6,hy+1.6,1.7,3.6,0.25,0,6.283); ctx.fill();
+  ctx.restore();
+}
+
 function drawPin(p,ox,oy){
   var x=p.x*TS-ox+TS/2, y=p.y*TS-oy;
   var vis=state.visited[p.t];
@@ -1216,7 +1264,8 @@ function render(dt,time){
   var layer=[];
   for(var i=0;i<props.length;i++){var p=props[i];if(p.x>x0-2&&p.x<x1+2&&p.y>y0-3&&p.y<y1+3)layer.push({y:p.y,k:'p',o:p});}
   for(i=0;i<buildings.length;i++){var b=buildings[i];if(b.x+b.w>x0-2&&b.x<x1+2&&b.y+b.h>y0-4&&b.y<y1+3)layer.push({y:b.y+b.h,k:'b',o:b});}
-  for(i=0;i<NPCS.length;i++){var n=NPCS[i];if(n.x>x0-2&&n.x<x1+2&&n.y>y0-3&&n.y<y1+3)layer.push({y:n.y,k:'n',o:n});}
+  for(i=0;i<NPCS.length;i++){var n=NPCS[i];if(n.x>x0-2&&n.x<x1+2&&n.y>y0-3&&n.y<y1+3){layer.push({y:n.y,k:'n',o:n});
+    if(n.dog)layer.push({y:n.dog.y,k:'dog',o:n.dog});}}
   for(i=0;i<ITEMS.length;i++){var it=ITEMS[i];
     if(state.found[it.n])continue;
     if(it.night&&night()<0.5)continue;
@@ -1228,6 +1277,7 @@ function render(dt,time){
     var L=layer[i];
     if(L.k==='p')drawProp(L.o,ox,oy,time);
     else if(L.k==='b')drawBuilding(L.o,ox,oy);
+    else if(L.k==='dog')drawDog(L.o.x*TS-ox,L.o.y*TS-oy,L.o,time);
     else if(L.k==='n'){
       var nb=(L.o.moving&&!reduce)?Math.sin((L.o.walk||0)*11)*2:0;
       drawPerson(L.o.x*TS-ox,L.o.y*TS-oy,L.o.c,L.o.c2,L.o.dir||'down',nb,(L.o.join||L.o.battle||L.o.named)?L.o.n:null,L.o.hs);
@@ -1245,7 +1295,8 @@ function render(dt,time){
     ctx.beginPath();ctx.arc(sm.x*TS-ox,sm.y*TS-oy,sm.r,0,6.283);ctx.fill();}
   for(i=0;i<NPCS.length;i++){var nb2=NPCS[i];        // 對話氣泡
     if(nb2.sayT>0&&nb2.x>x0-4&&nb2.x<x1+4&&nb2.y>y0-4&&nb2.y<y1+4)
-      drawBubble(nb2.x*TS-ox,nb2.y*TS-oy-50,nb2.say,nb2.ask>0);}
+      drawBubble(nb2.x*TS-ox,nb2.y*TS-oy-50,nb2.say,nb2.ask>0);
+    var dg=nb2.dog; if(dg&&dg.sayT>0) drawBubble(dg.x*TS-ox,dg.y*TS-oy-12,dg.say,false);   // 放低一點，避開主人的名牌}
   drawFists(ox,oy);
 
   // 地點招牌
@@ -1383,6 +1434,7 @@ function interact(){
       showCard('同事',n.n,'就站在你旁邊','要一起抽煙嗎？　再按一次就是「走」。');
     }else{
       var line=n.l[n.li%n.l.length]; n.li++;
+      if(n.dog){ n.dog.sayT=2.2; n.dog.say=['汪！','汪汪！','（搖尾巴）','嗚汪～'][n.li%4]; }
       say(n,line,3.5);
       showCard('遇到的人',n.n,'就站在你旁邊',line);
       toast(n.n+'：'+line);
@@ -2547,7 +2599,9 @@ function step(dt){
     if(dd>0.06){
       var vx=n.x+ddx/dd*0.9*dt, vy=n.y+ddy/dd*0.9*dt;
       if(free(vx*TS,vy*TS)){n.x=vx;n.y=vy;}else{n.wait=0.1;n.tx=n.hx;n.ty=n.hy;}
+      if(Math.abs(ddx)>0.02)n.dog&&(n.dog.side=ddx>0?-1:1);   // 主人往哪走，狗就排在反方向那側
     }
+    if(n.dog)stepDog(n,dt);
   }
   state.clock=(state.clock+dt*1.5)%1440;
 }
