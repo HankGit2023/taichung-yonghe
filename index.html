@@ -761,7 +761,9 @@ var YH={
    {x:52,y:44,n:'悠遊卡',w:'永和・永安市場站',d:'餘額剩 37 元，還夠坐到板橋。'}
   ],
   npcs:[
-   {x:32,y:36,c:'#ebe5d7',c2:'#8a5a3b',n:'Hank',named:1,l:['永安市場的水煎包要早上去，晚了就沒了。','四號公園晚上很多人在跑步。','要回台中的話，從永安市場站搭捷運到板橋轉高鐵。']},
+   {x:32,y:36,c:'#ebe5d7',c2:'#232327',n:'Hank',named:1,hs:'hank',
+    l:['對面有妹子 我要加她好友'],
+    lBy:{puff:['不愧是神輔','我落枕了','對面有妹子 我要加她好友']}},
    {x:63,y:21,c:'#f1e6d4',c2:'#5c6a62',n:'豆漿店老闆',l:['鹹的還是甜的？','燒餅剛出爐，要不要加蛋？','我們半夜也有開。']},
    {x:40,y:44,c:'#e8e0cc',c2:'#4f7a46',n:'市場阿嬤',l:['少年仔，青菜一把三十啦。','這攤我顧五十年了。','早上人最多，下午就收了。']},
    {x:77,y:11,c:'#dde8ea',c2:'#2f6e82',n:'跳蚤市場攤主',l:['這台相機是我阿公的，還能用喔。','黑膠一張一百，三張兩百五。','看看就好，不買沒關係。']},
@@ -1291,7 +1293,7 @@ function drawPerson(x,y,c,c2,face,bob,label,hs){
     ctx.fillStyle='#e46f8f';ctx.beginPath();ctx.arc(x+6,y-33+b,2.4,0,6.283);ctx.fill();
   }
   }
-  if(hs==='ga'||hs==='gb'||hs==='luck')drawStyle(x,y,c,face,b,hs);
+  if(hs==='ga'||hs==='gb'||hs==='luck'||hs==='hank')drawStyle(x,y,c,face,b,hs);
   if(label){
     ctx.font='500 10.5px "Noto Sans TC",sans-serif';ctx.textAlign='center';
     var tw=ctx.measureText(label).width;
@@ -1398,6 +1400,17 @@ function drawStyle(x,y,c,face,b,hs){
       ctx.fillStyle='#e8c25a'; ctx.beginPath(); ctx.arc(x,y-28.5+b,8.4,Math.PI,0); ctx.fill();                      // 金色刺蝟頭
       for(var k=-6;k<=6;k+=3){ ctx.beginPath(); ctx.moveTo(x+k-2,y-33+b); ctx.lineTo(x+k,y-38.5+b); ctx.lineTo(x+k+2,y-33+b); ctx.closePath(); ctx.fill(); }
     }
+  }else if(hs==='hank'){
+    // Hank：黑色帽T（後頸的帽子、兩條白色帽繩、肚子前的口袋）、黑色長褲、白色鞋子
+    ctx.fillStyle='#0f0f12'; ctx.fillRect(x-6,y-19.5+b,12,2.2);                                   // 帽子領口
+    if(back){ ctx.fillStyle='#2c2c31'; rrect(ctx,x-5.5,y-19+b,11,6,2.5); ctx.fill(); }            // 背後垂著的帽子
+    else{
+      ctx.strokeStyle='#ececE6'; ctx.lineWidth=0.9; ctx.beginPath();
+      ctx.moveTo(x-1.7,y-17.6+b); ctx.lineTo(x-1.9,y-13+b); ctx.moveTo(x+1.7,y-17.6+b); ctx.lineTo(x+1.9,y-13+b); ctx.stroke();
+      ctx.fillStyle='#303036'; rrect(ctx,x-4.5,y-11.5+b,9,3.6,1.3); ctx.fill();                  // 口袋
+    }
+    ctx.fillStyle='#141417'; ctx.fillRect(x-6,y-6+b,5.2,5.6); ctx.fillRect(x+0.8,y-6+b,5.2,5.6);   // 黑色長褲
+    ctx.fillStyle='#f7f7f3'; rrect(ctx,x-6.6,y-1.3,6.2,2.7,1.2); ctx.fill(); rrect(ctx,x+0.4,y-1.3,6.2,2.7,1.2); ctx.fill();   // 白鞋
   }else if(hs==='luck'){
     ctx.fillStyle='#1d1a1c';                                                                   // 烏黑長髮
     ctx.beginPath(); ctx.arc(x,y-27+b,8.7,Math.PI,0); ctx.fill();
@@ -1686,7 +1699,8 @@ function interact(){
       n.ask=5; say(n,'要一起抽煙嗎？',5);
       showCard('同事',n.n,'就站在你旁邊','要一起抽煙嗎？　再按一次就是「走」。');
     }else{
-      var line=n.l[n.li%n.l.length]; n.li++;
+      var ln=(n.lBy&&n.lBy[state.char])||n.l;    // 有些人對特定角色講的話不一樣
+      var line=ln[n.li%ln.length]; n.li++;
       if(n.dog){ n.dog.sayT=2.2; n.dog.say=['汪！','汪汪！','（搖尾巴）','嗚汪～'][n.li%4]; }
       if(n.idle) n.idleT=Math.max(n.idleT,6);
       say(n,line,3.5);
