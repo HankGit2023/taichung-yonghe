@@ -337,7 +337,7 @@ body.focus-mode .pad{
           <li><kbd>M / F</kbd><span>聲音開關 / 全螢幕切換</span></li>
         </ul>
         <p class="note">台中和永和是兩張地圖。走到<b>高鐵台中站</b>前按 <b>E</b> 就能搭高鐵到板橋、再轉捷運到永和；在永和走到<b>捷運永安市場站</b>前按 <b>E</b> 就能回台中。坐車途中點一下可以直接跳到抵達。</p>
-    <p class="note">草悟道上的<b>泡芙花花</b>、永安市場和四號公園之間的 <b>Hank</b>，走過去都可以聊兩句。</p>
+    <p class="note"><b>泡芙花花</b>在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
         <div class="act">
           <button id="btn-rest">休息一下（跳到下個時段）</button>
@@ -2142,6 +2142,19 @@ function drawMini(){
     mmx.beginPath();mmx.arc(P.x*sx,P.y*sy,3.4,0,6.283);
     if(state.visited[P.t]){mmx.fillStyle='#8a5a3b';mmx.fill();}
     else{mmx.strokeStyle='rgba(40,34,26,.75)';mmx.lineWidth=1.4;mmx.stroke();}
+  }
+  // 有名牌的主角（泡芙花花、Hank）在小地圖上畫成會閃的星形，顏色跟衣服一樣好認
+  var blink=0.8+0.2*Math.sin(Date.now()/260);
+  for(var ni=0;ni<NPCS.length;ni++){var nn=NPCS[ni]; if(!nn.named)continue;
+    var nx=nn.x*sx, ny=nn.y*sy, col=nn.hs==='puff'?'#ef4f8a':'#1f6fc0';
+    mmx.globalAlpha=blink; mmx.fillStyle=col;
+    mmx.beginPath();
+    for(var sp=0;sp<10;sp++){var ang=-Math.PI/2+sp*Math.PI/5, rr=sp%2?5:11;   // 小地圖顯示時會縮小，星星要畫大
+      mmx.lineTo(nx+Math.cos(ang)*rr,ny+Math.sin(ang)*rr);}
+    mmx.closePath();
+    mmx.strokeStyle='#1d1d22'; mmx.lineWidth=4.5; mmx.stroke();
+    mmx.strokeStyle='#fff'; mmx.lineWidth=2.2; mmx.stroke();
+    mmx.fill(); mmx.globalAlpha=1;
   }
   var px=state.px/TS*sx, py=state.py/TS*sy;
   mmx.strokeStyle='#fff';mmx.lineWidth=2;
