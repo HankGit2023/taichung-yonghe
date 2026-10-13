@@ -380,6 +380,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
         <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。一起出遊時換成隊伍裡的人，就是<b>換隊長</b>：大家原地繼續一起走；換成隊伍外的人，同伴就留在原地。</p>
         <p class="note">任何角色走到桑董車行的二手車旁邊按 <b>E</b> 都可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車（開車時 R 或右下角「加速」鈕切換加速模式，按住 Shift 暫時加速），再按 E（手機按「下車」）就停車，車停在你旁邊，之後走過去還能再開；開回車行原本的車位附近再下車就算還車。</p>
+        <p class="note">在<b>台東</b>海邊面向太平洋按 <b>E</b> 可以<b>拋竿釣魚</b>：浮標沉下去、冒出「！」時馬上再按 <b>E</b> 收竿，太早或太慢魚都會跑掉，移動就收線。飛魚、鬼頭刀、晚上的白帶魚，運氣好還有雨傘旗魚和翻車魚。</p>
         <p class="note">每個城市路的盡頭都有<b>國道交流道</b>（綠色指示牌）。試駕開到牌子旁按 <b>E</b> 就上高速公路，過場後從另一個城市的交流道下來繼續開：台中↔永和走國道1號、台中↔台東走國道3號接南迴公路、永和↔台東走國道5號穿過雪山隧道接蘇花改。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
@@ -1049,7 +1050,7 @@ function applyCharPositions(){                  // 把扮演過的人放回他�
     if(n.dog){ n.dog.x=p.x+0.9; n.dog.y=p.y+0.2; }
   });
 }
-function loadWorld(id,from){
+function loadWorld(id,from){ if(typeof FISH!=="undefined")FISH.on=false;
   var W=WORLDS[id]||TC;
   state.world=W.id;
   terrain.fill(0); mask.fill(0); buildings.length=0; props.length=0;
@@ -1091,7 +1092,7 @@ var state={
 var KEY='tc-yh-stroll-v1';
 function save(){
   recordPos();
-  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},tod:state.tod||'auto',boost:state.boost?1:0,btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},tod:state.tod||'auto',boost:state.boost?1:0,btWins:state.btWins||0,mUnlocked:state.mUnlocked||0,fish:state.fish||{}}));}catch(e){}
 }
 function load(){
   try{
@@ -1112,6 +1113,7 @@ function load(){
       if(typeof d.btWins==='number')state.btWins=d.btWins;
       if(d.mUnlocked)state.mUnlocked=1;
       if(Array.isArray(d.party))state.party=d.party;
+      if(d.fish&&typeof d.fish==='object')state.fish=d.fish;
     }
   }catch(e){}
 }
@@ -1784,6 +1786,7 @@ function render(dt,time){
     var dg=nb2.dog; if(dg&&dg.sayT>0) drawBubble(dg.x*TS-ox,dg.y*TS-oy-12,dg.say,false);}   // 狗的泡泡放低一點，避開主人的名牌
   if(state.pSayT>0) drawBubble(state.px-ox,state.py-oy-50,state.pSay,false);     // 玩家自己講的話
   drawFists(ox,oy);
+  drawFish(ox,oy,time);
 
   // 地點招牌
   for(i=0;i<POIS.length;i++){var P=POIS[i];
@@ -1835,6 +1838,7 @@ function findNearest(){
   if(!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if((CP.t==='car'||CP.t==='pcar')&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // 每個人都可以試駕／開走停著的車
   for(i=0;i<POIS.length;i++){var P=POIS[i];
     cand(4,8,'poi',P,P.x+0.5,P.y+0.5);}
+  var SA=seaAhead(); if(SA)cand(3.5,1,'fish',SA,ptx,pty);   // 台東：面向大海可以拋竿
   return best;
 }
 
@@ -1889,8 +1893,10 @@ function renderDex(){
 }
 function interact(){
   if(DRIVE.on){ var rp0=nearRamp(); if(rp0){ startHighway(rp0); return; } stopDrive(); return; }
+  if(FISH.on){ fishPress(); return; }
   var t=findNearest(); if(!t)return;
   if(t.k==='car'){ startDrive(t.o); return; }
+  if(t.k==='fish'){ startFish(t.o); return; }
   if(t.k==='item'){
     state.found[t.o.n]=1;
     toast('撿到了：'+t.o.n); SND.sfx('pickup',0.6);
@@ -3116,6 +3122,134 @@ cv.parentElement.addEventListener('pointerdown',function(e){
    任何角色走到桑董車行的二手車旁按 E →「試駕這台車」：你坐進車裡，用搖桿／方向鍵開車。
    車頭會慢慢轉向你推的方向，有加速、煞車，只能開在馬路、人行道、廣場和橋上，撞到東西會彈回來。
    再按 E（手機按「下車」）就結束，車由桑董開回車行原位。 */
+/* ============ 台東釣魚：面向太平洋按 E 拋竿 ============ */
+var FISH={on:false,ph:'',t:0,sx:0,sy:0,bx:0,by:0,wait:0,nib:0,win:0,pick:null};
+var FISH_LIST=[
+  {n:'飛魚',lo:20,hi:35,wt:16,d:'胸鰭張開像翅膀，夏天的東海岸到處都是。'},
+  {n:'鰹魚',lo:40,hi:70,wt:14,d:'黑潮帶來的洄游魚，成功漁港最常見。'},
+  {n:'鬼頭刀',lo:60,hi:120,wt:10,d:'一出水就金綠色閃閃發光，拉力超強。'},
+  {n:'白帶魚',lo:60,hi:110,wt:8,night:1,d:'銀亮亮的一條，晚上比較會咬。'},
+  {n:'河豚',lo:15,hi:30,wt:9,d:'一拉上來就氣鼓鼓地脹成一顆球。放生吧。'},
+  {n:'雨傘旗魚',lo:150,hi:260,wt:2,rare:1,d:'台東的明星魚！背鰭張開像一把雨傘。'},
+  {n:'翻車魚',lo:80,hi:200,wt:1.5,rare:1,d:'又圓又扁，一臉茫然地被拉上岸。'},
+  {n:'破拖鞋',wt:4,junk:1,d:'藍白拖，只有一隻。'},
+  {n:'寶特瓶',wt:4,junk:1,d:'海廢……順手帶走丟回收。'},
+  {n:'一團海草',wt:4,junk:1,d:'溼溼滑滑的。'}
+];
+// 面前 1～4 格內有海 → 回傳浮標要落的位置
+function seaAhead(){
+  if(state.world!=='td'||DRIVE.on)return null;
+  var v={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]}[state.dir]||[0,1];
+  var ptx=state.px/TS, pty=state.py/TS;
+  for(var d=1;d<=4;d++){
+    var tx=Math.floor(ptx+v[0]*d), ty=Math.floor(pty+v[1]*d);
+    if(tx<0||ty<0||tx>=MW||ty>=MH)return null;
+    var tr=terrain[idx(tx,ty)];
+    if(tr===WATER||tr===SHALLOW){
+      var L=d+2+Math.random()*1.5;
+      return {x:Math.max(0.5,Math.min(MW-0.5,ptx+v[0]*L)), y:Math.max(0.5,Math.min(MH-0.5,pty+v[1]*L))};
+    }
+    if(SOLID[tr]||mask[idx(tx,ty)])return null;
+  }
+  return null;
+}
+function startFish(tg){
+  FISH.on=true; FISH.ph='cast'; FISH.t=0;
+  FISH.sx=state.px/TS; FISH.sy=state.py/TS; FISH.bx=tg.x; FISH.by=tg.y;
+  FISH.wait=2+Math.random()*4.5; FISH.nib=0.8+Math.random()*1.2;
+  state.moving=0;
+  SND.sfx('toggle',0.3);
+}
+function fishEnd(msg){
+  FISH.on=false; FISH.ph='';
+  if(msg)toast(msg);
+}
+function rollFish(){
+  var nt=night()>0.5, tot=0, i, w=[];
+  for(i=0;i<FISH_LIST.length;i++){ var f=FISH_LIST[i]; var x=f.wt*(f.night&&nt?3:1); w.push(x); tot+=x; }
+  var r=Math.random()*tot;
+  for(i=0;i<w.length;i++){ r-=w[i]; if(r<=0)break; }
+  return FISH_LIST[Math.min(i,FISH_LIST.length-1)];
+}
+function fishPress(){
+  if(FISH.ph==='wait'){ SND.sfx('bump',0.3); fishEnd('太早收竿，魚被嚇跑了'); }
+  else if(FISH.ph==='bite'){ FISH.ph='reel'; FISH.t=0; SND.sfx('confirm',0.35); }
+}
+function fishCatch(){
+  var f=FISH.pick, cm=f.junk?0:Math.round(f.lo+(f.hi-f.lo)*Math.pow(Math.random(),1.6));
+  state.fish=state.fish||{};
+  var rec=state.fish[f.n]||(state.fish[f.n]={c:0,max:0});
+  rec.c++; var best=cm>rec.max; if(best)rec.max=cm;
+  fishEnd();
+  if(f.junk){
+    toast('釣到了……'+f.n); SND.sfx('bump',0.35);
+    showCard('釣魚',f.n,'台東・太平洋',f.d);
+    state.pSay='……'+f.n+'？'; state.pSayT=2.6;
+  }else{
+    toast('釣到了！'+f.n+' '+cm+' 公分'+(best&&rec.c>1?'（新紀錄）':''));
+    SND.sfx(f.rare?'win':'pickup',f.rare?0.3:0.5);
+    showCard('釣魚',f.n+'　'+cm+' cm','台東・太平洋',f.d+'　已經釣到 '+rec.c+' 條，最大 '+rec.max+' 公分。');
+    state.pSay=f.rare?'哇！是'+f.n+'！':'釣到'+f.n+'了！'; state.pSayT=2.8;
+    addLog('在台東海邊釣到'+f.n+' '+cm+' 公分（'+clockStr()+'）');
+  }
+  save();
+}
+function fishStep(dt){
+  if(!FISH.on)return;
+  FISH.t+=dt;
+  if(FISH.ph==='cast'&&FISH.t>=0.6){ FISH.ph='wait'; FISH.t=0; SND.sfx('tick',0.35); }
+  else if(FISH.ph==='wait'){
+    FISH.nib-=dt;
+    if(FISH.nib<=0){ FISH.nib=0.9+Math.random()*1.6; FISH.dip=0.25; SND.sfx('tick',0.18); }   // 魚在輕啄，騙你按
+    if(FISH.t>=FISH.wait){
+      FISH.pick=rollFish(); FISH.ph='bite'; FISH.t=0;
+      FISH.win=FISH.pick.rare?0.65:FISH.pick.junk?1.2:0.9;
+      SND.sfx('confirm',0.4,0,1.5);
+      try{ if(navigator.vibrate)navigator.vibrate(120); }catch(e){}
+    }
+  }
+  else if(FISH.ph==='bite'&&FISH.t>=FISH.win){ SND.sfx('lose',0.2); fishEnd('太慢了，'+(FISH.pick.junk?'東西':'魚')+'跑掉了'); }
+  else if(FISH.ph==='reel'&&FISH.t>=0.7){ fishCatch(); }
+  if(FISH.dip>0)FISH.dip-=dt;
+}
+function drawFish(ox,oy,time){
+  if(!FISH.on)return;
+  var hx=state.px-ox+({left:-9,right:9}[state.dir]||6), hy=state.py-oy-14;   // 手
+  var tipX=hx+({left:-14,right:14,up:4,down:4}[state.dir]||0), tipY=hy-({up:22,down:4}[state.dir]||16);   // 竿尖
+  var bx=FISH.bx*TS-ox, by=FISH.by*TS-oy, k;
+  if(FISH.ph==='cast'){ k=Math.min(1,FISH.t/0.6);
+    var sx=tipX, sy=tipY; bx=sx+(bx-sx)*k; by=sy+(by-sy)*k-Math.sin(k*Math.PI)*40; }
+  else if(FISH.ph==='reel'){ k=Math.min(1,FISH.t/0.7); bx=bx+(tipX-bx)*k; by=by+(tipY+10-by)*k; }
+  else{
+    by+=Math.sin(time*3)*1.5;
+    if(FISH.dip>0)by+=3;
+    if(FISH.ph==='bite')by+=6+Math.sin(time*30)*2;
+  }
+  ctx.save();
+  ctx.strokeStyle='#4a3420'; ctx.lineWidth=2.5; ctx.lineCap='round';      // 釣竿
+  ctx.beginPath(); ctx.moveTo(hx,hy); ctx.lineTo(tipX,tipY); ctx.stroke();
+  ctx.strokeStyle='rgba(250,250,250,.75)'; ctx.lineWidth=1;              // 釣線
+  ctx.beginPath(); ctx.moveTo(tipX,tipY);
+  ctx.quadraticCurveTo((tipX+bx)/2,Math.max(tipY,by)+(FISH.ph==='bite'||FISH.ph==='reel'?0:12),bx,by); ctx.stroke();
+  if(FISH.ph!=='cast'&&FISH.ph!=='reel'){                                // 水波
+    ctx.strokeStyle='rgba(255,255,255,'+(FISH.ph==='bite'?0.8:0.35)+')';
+    var rr=4+((time*(FISH.ph==='bite'?3:1))%1)*8;
+    ctx.beginPath(); ctx.ellipse(bx,by+4,rr,rr*0.45,0,0,6.283); ctx.stroke();
+  }
+  ctx.fillStyle='#e8402e'; ctx.beginPath(); ctx.arc(bx,by-1,3.5,Math.PI,0); ctx.fill();   // 浮標
+  ctx.fillStyle='#fafafa'; ctx.beginPath(); ctx.arc(bx,by-1,3.5,0,Math.PI); ctx.fill();
+  if(FISH.ph==='reel'&&FISH.pick&&!FISH.pick.junk){                     // 魚被拉上來
+    ctx.fillStyle=FISH.pick.rare?'#3f6fb0':'#9fb8c8';
+    ctx.beginPath(); ctx.ellipse(bx,by+8,FISH.pick.rare?12:8,4,Math.sin(time*25)*0.5,0,6.283); ctx.fill();
+  }
+  if(FISH.ph==='bite'){
+    ctx.font='800 20px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='#ffd23a'; ctx.strokeStyle='#5a3a00'; ctx.lineWidth=3;
+    ctx.strokeText('！',bx,by-14); ctx.fillText('！',bx,by-14);
+  }
+  ctx.restore();
+}
+
 var DRIVE={on:false,ang:0,speed:0};
 var DRIVABLE={}; DRIVABLE[ROAD]=1; DRIVABLE[PAVE]=1; DRIVABLE[PLAZA]=1; DRIVABLE[DECK]=1;
 var CAR_COLORS=['#d8d8d4','#2b2d33','#b8322f','#3a6ea8','#e6c84a','#5c8a5a'];
@@ -3553,7 +3687,7 @@ function closeWho(){
   whoOpen=false; whoEl.classList.remove('on'); document.body.classList.remove('in-who');
   if(!state.char){ state.char='passer'; save(); }               // 第一次直接關掉就當路人甲
 }
-function pickChar(id){
+function pickChar(id){ FISH.on=false;
   var ch=charById(id);
   if(ch.id===state.char){ closeWho(); return; }
   if(DRIVE.on) stopDrive();
@@ -3688,6 +3822,7 @@ function step(dt){
     dx=joy.nx; dy=joy.ny;
     push=Math.min(1,(joy.mag-JOY_DEAD)/(0.9-JOY_DEAD));
   }
+  if(FISH.on){ if(push>0.02&&FISH.ph!=='reel')fishEnd('收線了'); else {dx=dy=push=0;} }   // 釣魚中一動就收線
   if(DRIVE.on){ driveStep(dt,dx,dy,push);        // 試駕中：用開車的方式移動
     buddyParty().forEach(function(n){ n.x=state.px/TS; n.y=state.py/TS; if(n.dog){n.dog.x=n.x;n.dog.y=n.y;} });   // 同伴坐在車上
     if(PDOG){ PDOG.x=state.px/TS; PDOG.y=state.py/TS; }
@@ -3817,15 +3952,22 @@ function loop(t){
   if(RIDE.on){ rideFrame(dt,t/1000); requestAnimationFrame(loop); return; }   // 坐高鐵中
   if(MJ.on){ mjFrame(dt,t/1000); requestAnimationFrame(loop); return; }      // 打麻將中
   if(BT.on){ battleFrame(dt,t/1000); requestAnimationFrame(loop); return; }  // 對戰中地圖凍結
-  step(dt);
+  step(dt); fishStep(dt);
   render(dt,t/1000);
 
-  nearest=DRIVE.on?null:findNearest();
-  if(DRIVE.on){ var rp1=nearRamp();
+  nearest=(DRIVE.on||FISH.on)?null:findNearest();
+  if(FISH.on){
+    if(FISH.ph==='bite'){ hintEl.innerHTML='<kbd>E</kbd>上鉤了！快收竿！'; setAbtn('收竿！',true); }
+    else if(FISH.ph==='reel'){ hintEl.innerHTML='收線中……'; setAbtn('……',false); }
+    else{ hintEl.innerHTML='等魚上鉤…浮標沉下去再按 <kbd>E</kbd>（移動就收線）'; setAbtn('等…',false); }
+    hintEl.classList.add('on');
+  }
+  else if(DRIVE.on){ var rp1=nearRamp();
     if(rp1){ hintEl.innerHTML='<kbd>E</kbd>'+rp1.label; hintEl.classList.add('on'); setAbtn('上國道',true); }
     else{ hintEl.innerHTML='<kbd>E</kbd>下車，結束試駕'; hintEl.classList.add('on'); setAbtn('下車',true); } }
   else if(nearest){
-    var label = nearest.k==='car'?(nearest.o.t==='pcar'?'開這台車':'試駕這台車')
+    var label = nearest.k==='fish'?'朝大海拋竿釣魚'
+      : nearest.k==='car'?(nearest.o.t==='pcar'?'開這台車':'試駕這台車')
       : nearest.k==='gate'?nearest.o.label
       : nearest.k==='item'?'撿起發亮的東西'
       : nearest.k==='npc'? npcLabel(nearest.o)[0]
@@ -3833,7 +3975,8 @@ function loop(t){
     hintEl.innerHTML='<kbd>E</kbd>'+label;
     hintEl.classList.add('on');
     // 行動按鈕用短版動詞，塞得進 68px 圓鈕
-    var shortLabel = nearest.k==='car'?(nearest.o.t==='pcar'?'開車':'試駕')
+    var shortLabel = nearest.k==='fish'?'釣魚'
+      : nearest.k==='car'?(nearest.o.t==='pcar'?'開車':'試駕')
       : nearest.k==='gate'?nearest.o.short
       : nearest.k==='item'?'撿'
       : nearest.k==='npc'? npcLabel(nearest.o)[1]
