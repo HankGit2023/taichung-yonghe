@@ -340,7 +340,7 @@ body.focus-mode .pad{
           <li><kbd>M / F</kbd><span>聲音開關 / 全螢幕切換</span></li>
         </ul>
         <p class="note">台中和永和是兩張地圖。走到<b>高鐵台中站</b>前按 <b>E</b> 就能搭高鐵到板橋、再轉捷運到永和；在永和走到<b>捷運永安市場站</b>前按 <b>E</b> 就能回台中。坐車途中點一下可以直接跳到抵達。</p>
-    <p class="note"><b>泡芙花花</b>（身邊跟著一隻奶油色的臘腸狗）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
+    <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
         <div class="act">
           <button id="btn-rest">休息一下（跳到下個時段）</button>
@@ -630,7 +630,9 @@ var TC={
    {x:15,y:61,n:'高鐵車票',w:'台中・高鐵站',d:'台中到板橋，自由座。'}
   ],
   npcs:[
-   {x:44,y:22,c:'#f8e7da',c2:'#f5f5f0',n:'泡芙花花',named:1,hs:'puff',pet:'dachshund',l:['草悟道的樹好多，好想在這裡野餐！','審計新村那家甜點店，你吃過了嗎？','下次去永和，記得幫我帶一杯豆漿回來。']},
+   {x:44,y:22,c:'#f8e7da',c2:'#f5f5f0',n:'泡芙花花',named:1,hs:'puff',pet:'dachshund',petName:'泡芙',
+    idle:['小狗～妳怎麼這麼可愛','小狗⋯妳要尿尿哦','小狗 妳肚子餓哦'],
+    l:['超好笑','啊 薯條了']},
    {x:30,y:19,c:'#e9e2d4',c2:'#3c4a58',n:'歌劇院導覽員',l:['這棟樓裡面找不到一根直的柱子喔。','晚上的外牆比白天好看。','表演快開始了，記得手機靜音。']},
    {x:64,y:42,c:'#efe1cf',c2:'#a8453a',n:'市場阿姨',l:['菜頭粿剛起鍋，要不要一塊？','我們這攤開四十年了。','早點來，十點就賣完了。']},
    {x:70,y:10,c:'#f0e6d8',c2:'#3f7f68',n:'一中街的學生',l:['補習班下課就是來這裡。','這家雞排要排二十分鐘。','手搖飲半糖少冰，不能再甜了。']},
@@ -735,7 +737,8 @@ function loadWorld(id,arrive){
   POIS=W.pois; ITEMS=W.items; NPCS=W.npcs; AREAS=W.areas; GATES=W.gates;
   ITEMS.forEach(function(it){nudge(it);});
   NPCS.forEach(function(n){nudge(n);n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.sayT=0;
-    if(n.pet){ n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0}; }});
+    if(n.pet){ n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0,name:n.petName||''}; }
+    if(n.idle){ n.idleT=2+Math.random()*3; n.idleLast=-1; }});
   state.px=W.spawn.x*TS; state.py=W.spawn.y*TS;
   if(typeof cam!=='undefined'&&cam){ cam.x=state.px-(cv.vw||600)/2; cam.y=state.py-(cv.vh||400)/2; }
   if(typeof mmBase!=='undefined'&&mmBase) rebuildMini();
@@ -1190,6 +1193,12 @@ function drawDog(x,y,d,time){
   // 垂耳
   ctx.fillStyle=EAR; ctx.beginPath(); ctx.ellipse(hx-1.6,hy+1.6,1.7,3.6,0.25,0,6.283); ctx.fill();
   ctx.restore();
+  if(d.name){                                         // 小一號的名牌
+    ctx.font='500 9.5px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+    var tw=ctx.measureText(d.name).width;
+    ctx.fillStyle='rgba(150,96,50,.78)'; rrect(ctx,x-tw/2-5,y-29,tw+10,13,6.5); ctx.fill();
+    ctx.fillStyle='#fff8ec'; ctx.fillText(d.name,x,y-19.5); ctx.textAlign='left';
+  }
 }
 
 function drawPin(p,ox,oy){
@@ -1435,6 +1444,7 @@ function interact(){
     }else{
       var line=n.l[n.li%n.l.length]; n.li++;
       if(n.dog){ n.dog.sayT=2.2; n.dog.say=['汪！','汪汪！','（搖尾巴）','嗚汪～'][n.li%4]; }
+      if(n.idle) n.idleT=Math.max(n.idleT,6);
       say(n,line,3.5);
       showCard('遇到的人',n.n,'就站在你旁邊',line);
       toast(n.n+'：'+line);
@@ -2602,6 +2612,14 @@ function step(dt){
       if(Math.abs(ddx)>0.02)n.dog&&(n.dog.side=ddx>0?-1:1);   // 主人往哪走，狗就排在反方向那側
     }
     if(n.dog)stepDog(n,dt);
+    if(n.idle){
+      n.idleT-=dt;
+      if(n.idleT<=0&&!(n.sayT>0)){
+        var ii; do{ ii=Math.floor(Math.random()*n.idle.length); }while(n.idle.length>1&&ii===n.idleLast);
+        n.idleLast=ii; say(n,n.idle[ii],3.6);
+        n.idleT=7+Math.random()*4;
+      }
+    }
   }
   state.clock=(state.clock+dt*1.5)%1440;
 }
