@@ -627,7 +627,7 @@ var TC={
    {x:15,y:61,n:'高鐵車票',w:'台中・高鐵站',d:'台中到板橋，自由座。'}
   ],
   npcs:[
-   {x:44,y:22,c:'#f7e4d8',c2:'#e58fae',n:'泡芙花花',named:1,hs:'long',l:['草悟道的樹好多，好想在這裡野餐！','審計新村那家甜點店，你吃過了嗎？','下次去永和，記得幫我帶一杯豆漿回來。']},
+   {x:44,y:22,c:'#f8e7da',c2:'#f5f5f0',n:'泡芙花花',named:1,hs:'puff',l:['草悟道的樹好多，好想在這裡野餐！','審計新村那家甜點店，你吃過了嗎？','下次去永和，記得幫我帶一杯豆漿回來。']},
    {x:30,y:19,c:'#e9e2d4',c2:'#3c4a58',n:'歌劇院導覽員',l:['這棟樓裡面找不到一根直的柱子喔。','晚上的外牆比白天好看。','表演快開始了，記得手機靜音。']},
    {x:64,y:42,c:'#efe1cf',c2:'#a8453a',n:'市場阿姨',l:['菜頭粿剛起鍋，要不要一塊？','我們這攤開四十年了。','早點來，十點就賣完了。']},
    {x:70,y:10,c:'#f0e6d8',c2:'#3f7f68',n:'一中街的學生',l:['補習班下課就是來這裡。','這家雞排要排二十分鐘。','手搖飲半糖少冰，不能再甜了。']},
@@ -1053,6 +1053,8 @@ function drawPerson(x,y,c,c2,face,bob,label,hs){
   ctx.fillStyle='rgba(28,40,24,.2)';
   ctx.beginPath();ctx.ellipse(x,y+1,8,3.4,0,0,6.283);ctx.fill();
   var b=bob;
+  if(hs==='puff'){ drawPuff(x,y,face,b); }       // 泡芙花花有自己的造型
+  else{
   ctx.fillStyle=c2; // 身體
   rrect(ctx,x-7,y-19+b,14,14,4);ctx.fill();
   ctx.fillStyle=c;  // 頭
@@ -1068,6 +1070,7 @@ function drawPerson(x,y,c,c2,face,bob,label,hs){
     else{ rrect(ctx,x-9,y-29+b,4,15,2);ctx.fill(); rrect(ctx,x+5,y-29+b,4,15,2);ctx.fill(); }
     ctx.fillStyle='#e46f8f';ctx.beginPath();ctx.arc(x+6,y-33+b,2.4,0,6.283);ctx.fill();
   }
+  }
   if(label){
     ctx.font='500 10.5px "Noto Sans TC",sans-serif';ctx.textAlign='center';
     var tw=ctx.measureText(label).width;
@@ -1076,6 +1079,65 @@ function drawPerson(x,y,c,c2,face,bob,label,hs){
     ctx.fillStyle='#f2f6f0';ctx.fillText(label,x,y-39);
     ctx.textAlign='left';
   }
+}
+
+// 泡芙花花：淺棕高馬尾 + 黑色蝴蝶結、齊瀏海、白色水手服（灰藍領、紅領巾）、深藍百褶裙、鼓臉頰的無言表情
+function drawPuff(x,y,face,b){
+  var HAIR='#dca27c', HAIR_D='#b9805f', SKIN='#f8e7da';
+  var side=face==='left'?-1:face==='right'?1:0, back=face==='up';
+  var tx=back?x:(side?x-side*6:x-7), ty=y-35+b;     // 馬尾根部：正面在畫面左上，側面在後腦
+  // 馬尾（先畫，在身體後面）：從根部往外甩出去再垂到腰
+  var tl=back?x:(side?x-side*11:x-11);
+  ctx.fillStyle=HAIR;
+  ctx.beginPath(); ctx.moveTo(tx-2.5,ty+1); ctx.quadraticCurveTo(tl-3,ty+8,tl-2.8,y-5+b);
+  ctx.quadraticCurveTo(tl,y-2+b,tl+2.8,y-5+b); ctx.quadraticCurveTo(tl+3,ty+9,tx+2.5,ty+1); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle=HAIR_D; ctx.lineWidth=0.9;
+  ctx.beginPath(); ctx.moveTo(tx,ty+3); ctx.quadraticCurveTo(tl,ty+10,tl,y-6+b); ctx.stroke();
+  // 深藍百褶裙
+  ctx.fillStyle='#3d4863';
+  ctx.beginPath(); ctx.moveTo(x-7,y-8+b); ctx.lineTo(x+7,y-8+b); ctx.lineTo(x+9.5,y-1+b); ctx.lineTo(x-9.5,y-1+b); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(20,26,40,.5)'; ctx.lineWidth=0.8;
+  for(var k=-6;k<=6;k+=4){ ctx.beginPath(); ctx.moveTo(x+k*0.75,y-8+b); ctx.lineTo(x+k,y-1+b); ctx.stroke(); }
+  // 白色水手服
+  ctx.fillStyle='#f5f5f0'; rrect(ctx,x-7,y-19+b,14,12,4); ctx.fill();
+  ctx.fillStyle='#8e9aaa';
+  if(back){ ctx.fillRect(x-7,y-19+b,14,6); ctx.fillStyle='#f5f5f0'; ctx.fillRect(x-7,y-14.6+b,14,0.9); }
+  else{
+    ctx.beginPath(); ctx.moveTo(x-7,y-18.5+b); ctx.lineTo(x+7,y-18.5+b); ctx.lineTo(x,y-11+b); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#f5f5f0'; ctx.beginPath(); ctx.moveTo(x-3.4,y-18.5+b); ctx.lineTo(x+3.4,y-18.5+b); ctx.lineTo(x,y-13.6+b); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#c73b3b';                       // 紅領巾
+    ctx.fillRect(x-3.6,y-13.6+b,7.2,2);
+    ctx.beginPath(); ctx.moveTo(x-2,y-11.8+b); ctx.lineTo(x+2,y-11.8+b); ctx.lineTo(x+1.2,y-7.6+b); ctx.lineTo(x-1.2,y-7.6+b); ctx.closePath(); ctx.fill();
+  }
+  // 頭
+  ctx.fillStyle=SKIN; ctx.beginPath(); ctx.arc(x,y-25+b,8,0,6.283); ctx.fill();
+  ctx.fillStyle=HAIR;
+  ctx.beginPath(); ctx.arc(x,y-27+b,8.7,Math.PI,0); ctx.fill();          // 頭頂
+  if(back){ rrect(ctx,x-8.7,y-28+b,17.4,12,4); ctx.fill(); }
+  else{
+    ctx.fillRect(x-8.7,y-28+b,3.2,12); ctx.fillRect(x+5.5,y-28+b,3.2,12);  // 兩側垂髮
+    ctx.fillRect(x-7.2+side*1.5,y-30+b,14.4,4.8);                          // 齊瀏海
+    ctx.fillStyle=HAIR_D;
+    for(var i=-5;i<=5;i+=3.4) ctx.fillRect(x+i+side*1.5,y-26.2+b,0.9,1.2);  // 瀏海的分線
+    // 無言的眼神：白眼 + 上緣一條線
+    var eyes=side?[x+side*3.2]:[x-3.4,x+3.4];
+    eyes.forEach(function(ex){
+      ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.ellipse(ex,y-24+b,1.9,1.05,0,0,6.283); ctx.fill();
+      ctx.strokeStyle='#4a3a32'; ctx.lineWidth=0.9;
+      ctx.beginPath(); ctx.moveTo(ex-2.2,y-25+b); ctx.lineTo(ex+2.2,y-25+b); ctx.stroke();
+    });
+    ctx.fillStyle='rgba(240,135,135,.55)';                                 // 腮紅
+    (side?[x+side*4.6]:[x-5,x+5]).forEach(function(cx){ ctx.beginPath(); ctx.arc(cx,y-21.6+b,1.6,0,6.283); ctx.fill(); });
+    ctx.strokeStyle='#4a3a32'; ctx.lineWidth=0.8;                         // 鼓臉頰嘟起來的波浪嘴
+    var mx=x+side*2.5, my=y-20.2+b;
+    ctx.beginPath(); ctx.moveTo(mx-2,my); ctx.quadraticCurveTo(mx-1,my-1.1,mx,my); ctx.quadraticCurveTo(mx+1,my+1.1,mx+2,my); ctx.stroke();
+  }
+  // 馬尾根部的髮束與黑色蝴蝶結
+  ctx.fillStyle=HAIR; ctx.beginPath(); ctx.arc(tx,ty+1,3,0,6.283); ctx.fill();
+  ctx.fillStyle='#1d1d22';
+  ctx.beginPath(); ctx.moveTo(tx,ty+1); ctx.lineTo(tx-3.6,ty-1.6); ctx.lineTo(tx-3.6,ty+3.6); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(tx,ty+1); ctx.lineTo(tx+3.6,ty-1.6); ctx.lineTo(tx+3.6,ty+3.6); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.arc(tx,ty+1,1.1,0,6.283); ctx.fill();
 }
 
 function drawPin(p,ox,oy){
