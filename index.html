@@ -373,6 +373,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
         <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。一起出遊時換成隊伍裡的人，就是<b>換隊長</b>：大家原地繼續一起走；換成隊伍外的人，同伴就留在原地。</p>
         <p class="note">任何角色走到桑董車行的二手車旁邊按 <b>E</b> 都可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）結束，車會開回車行。</p>
+        <p class="note">每個城市路的盡頭都有<b>國道交流道</b>（綠色指示牌）。試駕開到牌子旁按 <b>E</b> 就上高速公路，過場後從另一個城市的交流道下來繼續開：台中↔永和走國道1號、台中↔台東走國道3號接南迴公路、永和↔台東走國道5號穿過雪山隧道接蘇花改。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
@@ -884,6 +885,21 @@ var TD={
    {x:12,y:45,w:53,h:4,n:'新生路'},{x:12,y:49,w:20,h:15,n:'台東車站'},{x:12,y:0,w:32,h:22,n:'台東市區北邊'}
   ]
 };
+// 國道交流道（每個城市兩個，通往另外兩個城市；說明見「國道交流道」區塊）
+var RAMPS={
+  tc:[{x:1.5,y:30.5,to:'yh',ang:0,sign:['國道1號 北上','往 台北・永和'],label:'上國道1號北上，往永和',
+       place:'國道1號 台中交流道',desc:'從台灣大道西端下交流道，往東開就是台中市區。'},
+      {x:1.5,y:46.5,to:'td',ang:0,sign:['國道3號 南下','往 屏東・台東'],label:'上國道3號南下，往台東',
+       place:'國道3號 台中交流道',desc:'從公益路西端下交流道，北邊就是桑董車行。'}],
+  yh:[{x:1.5,y:12.5,to:'tc',ang:0,sign:['國道1號 南下','往 台中'],label:'上國道1號南下，往台中',
+       place:'福和路・往國道1號',desc:'從福和路西端下來，往東開會經過頂溪和福和橋。'},
+      {x:88.5,y:21,to:'td',ang:Math.PI,sign:['國道5號 往宜蘭','接蘇花改・往台東'],label:'上國道5號，經雪山隧道往台東',
+       place:'中正路・往國道5號',desc:'從中正路東端下來，往西開就是永和市區。'}],
+  td:[{x:13.5,y:46.5,to:'tc',ang:0,sign:['南迴公路 往西部','接國道3號・往台中'],label:'走南迴公路接國道3號，往台中',
+       place:'新生路・南迴公路口',desc:'翻過南迴公路下來，往東開是台東市區、鐵花村和海邊。'},
+      {x:13.5,y:34.5,to:'yh',ang:0,sign:['台9線 北上','接蘇花改・國道5號'],label:'走台9線北上，接國5往永和',
+       place:'正氣路・台9線口',desc:'沿著花東海岸一路北上又回來了，往東就是夜市和市區。'}]
+};
 var WORLDS={tc:TC, yh:YH, td:TD};
 var POIS=[], ITEMS=[], NPCS=[], AREAS=[], GATES=[];
 var DEX_ALL=TC.items.concat(YH.items,TD.items), POIS_ALL=TC.pois.concat(YH.pois,TD.pois);
@@ -966,6 +982,13 @@ function loadWorld(id,from){
   var wl=document.getElementById('mm-world'); if(wl) wl.textContent=W.en;
   var hd=document.getElementById('hud-city'); if(hd) hd.textContent=W.name;
   setupPlayer(); placeParty();
+  // 試駕中換城市：回到台中時把車行裡那台車藏起來；在別的城市就沒有那台車
+  if(typeof DRIVE!=='undefined'&&DRIVE.on){
+    DRIVE.car=null;
+    if(W.id==='tc'&&DRIVE.carXY) props.forEach(function(pp){ if(pp.t==='car'&&pp.x===DRIVE.carXY.x&&pp.y===DRIVE.carXY.y){ pp.hidden=1; mask[idx(Math.floor(pp.x),Math.floor(pp.y))]=0; DRIVE.car=pp; } });
+  }
+  // 交流道的綠色指示牌
+  (RAMPS[W.id]||[]).forEach(function(rp){ props.push({t:'hwsign',x:rp.x+0.5,y:rp.y-1.6,text:rp.sign}); });
 }
 
 /* ============ 狀態 ============ */
@@ -1247,6 +1270,14 @@ function drawProp(p,ox,oy,time){
     ctx.fillStyle='#24494c';ctx.fillRect(x-10,y-43,20,5);
     ctx.fillStyle='#d9c27a';ctx.fillRect(x-5,y-42,10,3);
     if(night()>0.25){ctx.fillStyle='rgba(255,226,140,.5)';ctx.fillRect(x-6,y-33,12,22);}
+    return;
+  }
+  if(p.t==='hwsign'){                              // 國道交流道的綠色指示牌
+    ctx.fillStyle='#6b7378'; ctx.fillRect(x-28,y-40,3,40); ctx.fillRect(x+25,y-40,3,40);
+    ctx.fillStyle='#1f7a4c'; rrect(ctx,x-34,y-62,68,26,3); ctx.fill();
+    ctx.strokeStyle='#e9f3ec'; ctx.lineWidth=1; rrect(ctx,x-32,y-60,64,22,2); ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='700 7.5px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+    ctx.fillText(p.text[0],x,y-51); ctx.font='500 7px "Noto Sans TC",sans-serif'; ctx.fillText(p.text[1],x,y-42); ctx.textAlign='left';
     return;
   }
   if(p.t==='car'){ if(p.hidden)return;            // 待售的二手車（試駕中就不畫）
@@ -1762,7 +1793,7 @@ function renderDex(){
   document.getElementById('dex-bar').style.width=(n/DEX_ALL.length*100)+'%';
 }
 function interact(){
-  if(DRIVE.on){ stopDrive(); return; }
+  if(DRIVE.on){ var rp0=nearRamp(); if(rp0){ startHighway(rp0); return; } stopDrive(); return; }
   var t=findNearest(); if(!t)return;
   if(t.k==='car'){ startDrive(t.o); return; }
   if(t.k==='item'){
@@ -2434,13 +2465,13 @@ function rideFrame(dt,time){
     return;
   }
   if(t<RT.train){
-    drawTrainScene(W,H,t,time);
+    (RIDE.r.car?drawHighwayScene:drawTrainScene)(W,H,t,time);
     var fin=1-smooth((t-RT.title)/0.5), fout=smooth((t-(RT.train-0.5))/0.5);
     var fa=Math.max(fin,fout); if(fa>0){ctx.fillStyle='rgba(0,0,0,'+fa+')';ctx.fillRect(0,0,W,H);}
     return;
   }
   if(t<RT.black){
-    if(!RIDE.swapped){ RIDE.swapped=true; loadWorld(RIDE.to,RIDE.from); SND.blip(784,0.3,0,'sine',0.05); SND.blip(988,0.5,0.3,'sine',0.05); }
+    if(!RIDE.swapped){ RIDE.swapped=true; if(RIDE.r.car){ loadWorld(RIDE.to,null); placeAtRamp(RIDE.from); } else loadWorld(RIDE.to,RIDE.from); SND.blip(784,0.3,0,'sine',0.05); SND.blip(988,0.5,0.3,'sine',0.05); }
     ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
     ctx.globalAlpha=smooth((t-RT.train)/0.3); ctx.textAlign='center'; ctx.fillStyle='#f4f5f2';
     ctx.font='500 '+Math.round(Math.min(18,W/22))+'px "Noto Sans TC",sans-serif';
@@ -2541,7 +2572,10 @@ function drawTrainScene(W,H,t,time){
   if(sp>0.4){ ctx.strokeStyle='rgba(255,255,255,'+(0.25*sp)+')'; ctx.lineWidth=2;
     for(var i=0;i<14;i++){ var ly=hash(i,9)*H*0.6+H*0.1, lx=((hash(i,4)*W*2)-(d*2.2)%(W*2)+W*2)%(W*2)-W*0.5;
       ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(lx+90*sp,ly); ctx.stroke(); } }
-  // 上方的站點進度
+  rideHud(W,H,t);
+}
+function rideHud(W,H,t){                       // 坐車／上國道時上方的站點進度
+  var i;
   var st=RIDE.r.st, top=safeIn.t+14, px0=28, px1=W-28;
   var p=smooth((t-RT.title)/(RT.train-RT.title-0.4));
   ctx.fillStyle='rgba(20,26,34,.72)'; rrect(ctx,12,top,W-24,74,12); ctx.fill();
@@ -2549,17 +2583,150 @@ function drawTrainScene(W,H,t,time){
   ctx.fillStyle='#f4f5f2'; ctx.font='700 14px "Noto Sans TC",sans-serif'; ctx.fillText(RIDE.r.title,px0+44,top+20);
   var by=top+44;
   ctx.strokeStyle='rgba(244,245,242,.35)'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(px0,by); ctx.lineTo(px1,by); ctx.stroke();
-  ctx.strokeStyle='#e2762f'; ctx.beginPath(); ctx.moveTo(px0,by); ctx.lineTo(px0+(px1-px0)*p,by); ctx.stroke();
+  ctx.strokeStyle=RIDE.r.stripe; ctx.beginPath(); ctx.moveTo(px0,by); ctx.lineTo(px0+(px1-px0)*p,by); ctx.stroke();
   ctx.font='500 11px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
   for(i=0;i<st.length;i++){
     var sx=px0+(px1-px0)*i/(st.length-1), passed=p>=i/(st.length-1)-0.001;
-    ctx.fillStyle=passed?'#e2762f':'#59636b'; ctx.beginPath(); ctx.arc(sx,by,5,0,6.283); ctx.fill();
+    ctx.fillStyle=passed?RIDE.r.stripe:'#59636b'; ctx.beginPath(); ctx.arc(sx,by,5,0,6.283); ctx.fill();
     ctx.fillStyle=passed?'#f4f5f2':'#a9b3ad'; ctx.fillText(st[i],sx,by+20);
   }
   ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(px0+(px1-px0)*p,by,4,0,6.283); ctx.fill();
   ctx.textAlign='right'; ctx.fillStyle='rgba(244,245,242,.6)'; ctx.font='500 12px "Noto Sans TC",sans-serif';
   ctx.fillText('點一下跳過',W-18,H-18-safeIn.b); ctx.textAlign='left';
 }
+/* ============ 國道交流道（開車限定） ============
+   每個城市在路的盡頭有兩個交流道（綠色指示牌），各通往另外兩個城市。開車開到牌子旁按 E 就上國道：
+   高速公路過場（側面看你的車、車道線、護欄、車流、綠色路牌，台東方向看得到太平洋，國5 會穿過雪山隧道），
+   到了就從對方城市的交流道下來，車子繼續開，同伴也還在車上。 */
+var HROUTES={
+  'tc-yh':{car:1,brand:'國道1號 · 北上',tag:'國1',stripe:'#2e8b57',title:'台中交流道 → 永和',sub:'中山高速公路一路往北',
+           st:['台中','苗栗','新竹','桃園','林口','永和'],arrive:'下了交流道，永和到了。',log:'開車走國道1號北上，從台中到永和'},
+  'yh-tc':{car:1,brand:'國道1號 · 南下',tag:'國1',stripe:'#2e8b57',title:'永和 → 台中交流道',sub:'中山高速公路一路往南',
+           st:['永和','林口','桃園','新竹','苗栗','台中'],arrive:'下了交流道，台中到了。',log:'開車走國道1號南下，從永和到台中'},
+  'tc-td':{car:1,brand:'國道3號 → 南迴公路',tag:'國3',stripe:'#2e8b57',title:'台中 → 台東',sub:'國3南下，再接南迴公路沿著太平洋',
+           st:['台中','嘉義','台南','高雄','屏東','枋寮','台東'],sea:[0.65,1],arrive:'翻過南迴公路，台東到了。',log:'開車走國道3號接南迴公路，從台中到台東'},
+  'td-tc':{car:1,brand:'南迴公路 → 國道3號',tag:'國3',stripe:'#2e8b57',title:'台東 → 台中',sub:'南迴公路翻山，再接國3北上',
+           st:['台東','枋寮','屏東','高雄','台南','嘉義','台中'],sea:[0,0.35],arrive:'下了交流道，台中到了。',log:'開車走南迴公路接國道3號，從台東到台中'},
+  'yh-td':{car:1,brand:'國道5號 → 蘇花改',tag:'國5',stripe:'#2e8b57',title:'永和 → 台東',sub:'國5穿過雪山隧道，再接蘇花改和台9線',
+           st:['永和','坪林','雪隧','宜蘭','花蓮','台東'],tunnel:[0.18,0.42],sea:[0.55,1],arrive:'沿著花東海岸一路南下，台東到了。',log:'開車走國道5號、蘇花改，從永和到台東'},
+  'td-yh':{car:1,brand:'蘇花改 → 國道5號',tag:'國5',stripe:'#2e8b57',title:'台東 → 永和',sub:'台9線北上接蘇花改，再穿過雪山隧道',
+           st:['台東','花蓮','宜蘭','雪隧','坪林','永和'],tunnel:[0.58,0.82],sea:[0,0.45],arrive:'出了雪山隧道一路開，永和到了。',log:'開車走蘇花改、國道5號，從台東到永和'}
+};
+function nearRamp(){
+  var rs=RAMPS[state.world]||[], ptx=state.px/TS, pty=state.py/TS;
+  for(var i=0;i<rs.length;i++) if(Math.hypot(rs[i].x-ptx,rs[i].y-pty)<2.8) return rs[i];
+  return null;
+}
+function startHighway(rp){
+  if(RIDE.on)return;
+  RIDE={on:true, t:0, from:state.world, to:rp.to, r:HROUTES[state.world+'-'+rp.to], dist:0, swapped:false};
+  keys={}; joyReset(); measureSafe();
+  document.body.classList.add('in-ride');
+  SND.setMode('none');
+  [98,110,131,165,196,247].forEach(function(f,i){ SND.blip(f,0.18,i*0.11,'sawtooth',0.035); });   // 踩油門上匝道
+}
+function placeAtRamp(from){                      // 從對方城市的交流道下來，車子繼續開
+  var rs=RAMPS[state.world]||[], rp=null;
+  for(var i=0;i<rs.length;i++) if(rs[i].to===from) rp=rs[i];
+  if(!rp)return;
+  // 下了交流道先往市區開進去一段，離開牌子，按 E 才是下車而不是又上國道
+  state.px=(rp.x+Math.cos(rp.ang)*3.6)*TS; state.py=(rp.y+Math.sin(rp.ang)*3.6)*TS; DRIVE.ang=rp.ang; DRIVE.speed=0;
+  state.arrGate={place:rp.place, desc:rp.desc};
+  if(typeof cam!=='undefined'&&cam){ cam.x=state.px-(cv.vw||600)/2; cam.y=state.py-(cv.vh||400)/2; }
+  placeParty();
+}
+function drawSideCar(x,y,s,col,d){               // 側面看的車，輪子跟著轉
+  ctx.save(); ctx.translate(x,y); ctx.scale(s,s);
+  ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0,1,32,4,0,0,6.283); ctx.fill();
+  ctx.fillStyle=col; rrect(ctx,-31,-15,62,13,5); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-17,-15); ctx.lineTo(-10,-26); ctx.lineTo(12,-26); ctx.lineTo(20,-15); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#24313d'; ctx.beginPath(); ctx.moveTo(-14,-16); ctx.lineTo(-9,-24); ctx.lineTo(0,-24); ctx.lineTo(0,-16); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(2,-16); ctx.lineTo(2,-24); ctx.lineTo(11,-24); ctx.lineTo(17,-16); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#ffe9a8'; ctx.fillRect(28,-12,3,3); ctx.fillStyle='#d23c32'; ctx.fillRect(-31,-12,3,3);
+  [-18,18].forEach(function(wx){
+    ctx.fillStyle='#1b1b1f'; ctx.beginPath(); ctx.arc(wx,-2,6.5,0,6.283); ctx.fill();
+    ctx.strokeStyle='#8a8f96'; ctx.lineWidth=1.4; ctx.beginPath();
+    for(var k=0;k<3;k++){ var a=d*0.08+k*2.094; ctx.moveTo(wx,-2); ctx.lineTo(wx+Math.cos(a)*4.5,-2+Math.sin(a)*4.5); }
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+function drawHighwayScene(W,H,t,time){
+  var d=RIDE.dist, n=night(), sp=rideSpeed(t), r=RIDE.r;
+  var p=smooth((t-RT.title)/(RT.train-RT.title-0.4));
+  function mix(a,b){
+    var pa=[parseInt(a.substr(1,2),16),parseInt(a.substr(3,2),16),parseInt(a.substr(5,2),16)];
+    var pb=[parseInt(b.substr(1,2),16),parseInt(b.substr(3,2),16),parseInt(b.substr(5,2),16)];
+    return 'rgb('+pa.map(function(v,i){return Math.round(v+(pb[i]-v)*n);}).join(',')+')';
+  }
+  var inTunnel=r.tunnel&&p>r.tunnel[0]&&p<r.tunnel[1];
+  var bySea=r.sea&&p>=r.sea[0]&&p<=r.sea[1];
+  var hz=H*0.5, roadT=H*0.62, roadB=H*0.9;
+  if(inTunnel){                                    // 雪山隧道：一片暗，只有一排燈往後飛
+    ctx.fillStyle='#17191c'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#2a2d31'; ctx.fillRect(0,roadT-60,W,60);
+    var lo=(d*1.3)%90;
+    for(var lx=-90;lx<W+90;lx+=90){ ctx.fillStyle='rgba(255,214,140,.95)'; ctx.fillRect(lx-lo,roadT-52,36,4);
+      var tg=ctx.createRadialGradient(lx-lo+18,roadT-50,0,lx-lo+18,roadT-50,40); tg.addColorStop(0,'rgba(255,200,120,.25)'); tg.addColorStop(1,'rgba(255,200,120,0)'); ctx.fillStyle=tg; ctx.fillRect(lx-lo-22,roadT-90,80,80); }
+  }else{
+    var g=ctx.createLinearGradient(0,0,0,hz); g.addColorStop(0,mix('#a9d4ea','#141d33')); g.addColorStop(1,mix('#eef4e2','#34405a'));
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,roadT);
+    if(bySea){                                     // 公路旁就是太平洋
+      var sg=ctx.createLinearGradient(0,hz-40,0,roadT); sg.addColorStop(0,mix('#5aa9d6','#1b2e4c')); sg.addColorStop(1,mix('#2f7fb6','#13223a'));
+      ctx.fillStyle=sg; ctx.fillRect(0,hz-40,W,roadT-hz+40);
+      ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.5;
+      for(var wv=0;wv<14;wv++){ var wy=hz-30+hash(wv,2)*(roadT-hz+20), wx=((hash(wv,8)*W*1.5)-(d*0.15))%(W*1.5); if(wx<0)wx+=W*1.5;
+        ctx.beginPath(); ctx.moveTo(wx-18,wy); ctx.lineTo(wx,wy); ctx.stroke(); }
+    }else{
+      ctx.fillStyle=mix('#9fb8ae','#27334a');
+      var stp=60, b0=Math.floor(d*0.05/stp), f0=(d*0.05)%stp;
+      ctx.beginPath(); ctx.moveTo(0,hz+20);
+      for(var j=-1;j<W/stp+2;j++) ctx.lineTo(j*stp-f0,hz+20-(30+hash(b0+j,7)*70));
+      ctx.lineTo(W,hz+20); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=mix('#a7c98a','#24352c'); ctx.fillRect(0,hz+20,W,roadT-hz-20);
+      var b2=Math.floor(d*0.35/70), f2=(d*0.35)%70;                // 路邊的樹
+      for(var k2=-1;k2<W/70+2;k2++){ if(hash(b2+k2,4)<0.4)continue; ctx.fillStyle=mix('#6f9e5c','#22352a');
+        ctx.beginPath(); ctx.ellipse(k2*70-f2+30,roadT-16,16,14,0,0,6.283); ctx.fill(); }
+    }
+  }
+  // 護欄
+  ctx.fillStyle=mix('#c9ccc8','#555a60'); ctx.fillRect(0,roadT-8,W,4);
+  var po=(d*1.1)%60; ctx.fillStyle=mix('#9aa0a0','#40454b');
+  for(var px2=-60;px2<W+60;px2+=60) ctx.fillRect(px2-po,roadT-8,3,9);
+  // 路面與車道線
+  ctx.fillStyle=mix('#55595e','#2b2e33'); ctx.fillRect(0,roadT,W,roadB-roadT);
+  ctx.fillStyle=mix('#7a7f85','#3b3f45'); ctx.fillRect(0,roadB,W,H-roadB);
+  ctx.fillStyle='rgba(255,255,255,.8)'; ctx.fillRect(0,roadT+3,W,2); ctx.fillRect(0,roadB-5,W,2);
+  var dash=(d*1.6)%80;
+  for(var dx2=-80;dx2<W+80;dx2+=80) ctx.fillRect(dx2-dash,(roadT+roadB)/2-1.5,40,3);
+  // 綠色路牌：每隔一段飛過去，寫著下一站
+  var next=r.st[Math.min(r.st.length-1,Math.floor(p*(r.st.length-1))+1)];
+  var so=W+200-((d*0.9)%(W+600));
+  if(!inTunnel){
+    ctx.fillStyle=mix('#6b7378','#2a2e33'); ctx.fillRect(so+8,roadT-120,4,112); ctx.fillRect(so+128,roadT-120,4,112);
+    ctx.fillStyle='#1f7a4c'; rrect(ctx,so,roadT-150,140,44,5); ctx.fill();
+    ctx.strokeStyle='#e9f3ec'; ctx.lineWidth=1.5; rrect(ctx,so+3,roadT-147,134,38,4); ctx.stroke();
+    ctx.fillStyle='#fff'; ctx.font='700 15px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('往 '+next,so+70,roadT-122);
+    ctx.font='500 10px "Noto Sans TC",sans-serif'; ctx.fillText(r.tag,so+70,roadT-110); ctx.textAlign='left';
+  }
+  // 車流：對面那條車道的車慢慢被你超過
+  var lane1=roadT+(roadB-roadT)*0.42, lane2=roadT+(roadB-roadT)*0.9, sc=Math.max(0.8,Math.min(1.4,W/420));
+  for(var c=0;c<4;c++){
+    var cx=((c*(W+500)/4+hash(c,11)*60)-(d*0.35))%(W+500); if(cx<0)cx+=W+500; cx-=200;   // 車子平均分散，不要擠成一團
+    drawSideCar(cx,lane1,sc*0.85,['#d8d8d4','#3a6ea8','#b8322f','#2b2d33'][c],d*0.7);
+  }
+  // 你的車（車上的人都在裡面）
+  var bob=Math.sin(time*24)*sp*0.8;
+  drawSideCar(W*0.42,lane2+bob,sc*1.15,DRIVE.col||'#d8d8d4',d);
+  if(n>0.3){ var hg=ctx.createRadialGradient(W*0.42+40*sc,lane2-12,0,W*0.42+40*sc,lane2-12,120*sc); hg.addColorStop(0,'rgba(255,236,170,.45)'); hg.addColorStop(1,'rgba(255,236,170,0)');
+    ctx.fillStyle=hg; ctx.fillRect(W*0.42,lane2-80,160*sc,100); }
+  // 速度線
+  if(sp>0.4){ ctx.strokeStyle='rgba(255,255,255,'+(0.2*sp)+')'; ctx.lineWidth=2;
+    for(var i2=0;i2<10;i2++){ var ly=roadT+hash(i2,9)*(roadB-roadT), lx2=((hash(i2,4)*W*2)-(d*2.4)%(W*2)+W*2)%(W*2)-W*0.5;
+      ctx.beginPath(); ctx.moveTo(lx2,ly); ctx.lineTo(lx2+80*sp,ly); ctx.stroke(); } }
+  rideHud(W,H,t);
+}
+
 cv.parentElement.addEventListener('pointerdown',function(e){
   if(!RIDE.on)return;
   if(e.target.closest&&e.target.closest('button'))return;
@@ -2864,7 +3031,7 @@ function canDrive(px,py){
   return true;
 }
 function startDrive(car){
-  DRIVE={on:true, car:car, ang:0, speed:0, col:CAR_COLORS[car.v||0], dist:0};
+  DRIVE={on:true, car:car, carXY:{x:car.x,y:car.y}, ang:0, speed:0, col:CAR_COLORS[car.v||0], dist:0};
   car.hidden=1; mask[idx(Math.floor(car.x),Math.floor(car.y))]=0;
   // 先把車挪到兩排車中間的走道（車頭朝右、朝文心路），不然一開就撞到隔壁那台
   state.px=car.x*TS; state.py=car.y*TS-6;
@@ -2880,16 +3047,16 @@ function startDrive(car){
   switchTab('now');
 }
 function stopDrive(){
-  var c=DRIVE.car, d=Math.round(DRIVE.dist/TS);
-  c.hidden=0; mask[idx(Math.floor(c.x),Math.floor(c.y))]=1;
+  var c=DRIVE.car, d=Math.round(DRIVE.dist/TS), away=!c;
+  if(c){ c.hidden=0; mask[idx(Math.floor(c.x),Math.floor(c.y))]=1; }   // 不在台中下車的話，車由桑董派人開回去
   DRIVE.on=false;
   nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
   SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03);   // 熄火
   placeParty();                                   // 同伴一起下車，排在你身後
   if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
-  toast('試駕結束，桑董把車開回車行了');
+  toast(away?'下車了，桑董會派人把車開回台中':'試駕結束，桑董把車開回車行了');
   showCard('試駕','桑董車行的二手車','開了大約 '+d+' 格','下車的時候引擎還熱熱的。桑董喘著跑過來，把車開回車行原本的位置。');
-  addLog('在桑董車行試駕了一台車，開了大約 '+d+' 格（'+clockStr()+'）');
+  addLog(away?('開著桑董車行的車到了'+WORLDS[state.world].name+'，在這裡下車（'+clockStr()+'）'):('在桑董車行試駕了一台車，開了大約 '+d+' 格（'+clockStr()+'）'));
   save();
 }
 function driveStep(dt,dx,dy,push){
@@ -3479,7 +3646,9 @@ function loop(t){
   render(dt,t/1000);
 
   nearest=DRIVE.on?null:findNearest();
-  if(DRIVE.on){ hintEl.innerHTML='<kbd>E</kbd>下車，結束試駕'; hintEl.classList.add('on'); setAbtn('下車',true); }
+  if(DRIVE.on){ var rp1=nearRamp();
+    if(rp1){ hintEl.innerHTML='<kbd>E</kbd>'+rp1.label; hintEl.classList.add('on'); setAbtn('上國道',true); }
+    else{ hintEl.innerHTML='<kbd>E</kbd>下車，結束試駕'; hintEl.classList.add('on'); setAbtn('下車',true); } }
   else if(nearest){
     var label = nearest.k==='car'?'試駕這台車'
       : nearest.k==='gate'?nearest.o.label
