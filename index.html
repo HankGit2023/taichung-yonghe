@@ -1620,14 +1620,15 @@ function render(dt,time){
   var layer=[];
   for(var i=0;i<props.length;i++){var p=props[i];if(p.x>x0-2&&p.x<x1+2&&p.y>y0-3&&p.y<y1+3)layer.push({y:p.y,k:'p',o:p});}
   for(i=0;i<buildings.length;i++){var b=buildings[i];if(b.x+b.w>x0-2&&b.x<x1+2&&b.y+b.h>y0-4&&b.y<y1+3)layer.push({y:b.y+b.h,k:'b',o:b});}
-  for(i=0;i<NPCS.length;i++){var n=NPCS[i];if(n.x>x0-2&&n.x<x1+2&&n.y>y0-3&&n.y<y1+3){layer.push({y:n.y,k:'n',o:n});
+  for(i=0;i<NPCS.length;i++){var n=NPCS[i]; if(DRIVE.on&&n.inParty)continue;   // 同伴坐在車裡
+    if(n.x>x0-2&&n.x<x1+2&&n.y>y0-3&&n.y<y1+3){layer.push({y:n.y,k:'n',o:n});
     if(n.dog)layer.push({y:n.dog.y,k:'dog',o:n.dog});}}
   for(i=0;i<ITEMS.length;i++){var it=ITEMS[i];
     if(state.found[it.n])continue;
     if(it.night&&night()<0.5)continue;
     if(it.x>x0-2&&it.x<x1+2&&it.y>y0-3&&it.y<y1+3)layer.push({y:it.y,k:'i',o:it});}
   layer.push({y:state.py/TS,k:'me',o:null});
-  if(PDOG)layer.push({y:PDOG.y,k:'dog',o:PDOG});
+  if(PDOG&&!DRIVE.on)layer.push({y:PDOG.y,k:'dog',o:PDOG});
   layer.sort(function(a,b){return a.y-b.y;});
 
   for(i=0;i<layer.length;i++){
@@ -1651,7 +1652,7 @@ function render(dt,time){
     if(sm.x<x0-2||sm.x>x1+2)continue;
     ctx.fillStyle='rgba(228,232,228,'+Math.max(0,sm.a).toFixed(3)+')';
     ctx.beginPath();ctx.arc(sm.x*TS-ox,sm.y*TS-oy,sm.r,0,6.283);ctx.fill();}
-  for(i=0;i<NPCS.length;i++){var nb2=NPCS[i];        // 對話氣泡
+  for(i=0;i<NPCS.length;i++){var nb2=NPCS[i]; if(DRIVE.on&&nb2.inParty)continue;        // 對話氣泡
     if(nb2.sayT>0&&nb2.x>x0-4&&nb2.x<x1+4&&nb2.y>y0-4&&nb2.y<y1+4)
       drawBubble(nb2.x*TS-ox,nb2.y*TS-oy-50,nb2.say,nb2.ask>0);
     var dg=nb2.dog; if(dg&&dg.sayT>0) drawBubble(dg.x*TS-ox,dg.y*TS-oy-12,dg.say,false);}   // 狗的泡泡放低一點，避開主人的名牌
@@ -2873,7 +2874,8 @@ function startDrive(car){
   [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,i*0.09,'sawtooth',0.035);});   // 發動引擎
   var sang=NPCS.filter(function(n){return n.n==='桑董說車';})[0];
   if(sang)say(sang,'喘…小心開…喘…',3.5);
-  toast('試駕開始！按 E 或「下車」結束');
+  var riders=buddyParty().map(function(n){return n.n;});
+  toast(riders.length?(riders.join('、')+' 也一起上車了'):'試駕開始！按 E 或「下車」結束');
   showCard('試駕','桑董車行的二手車','用搖桿或方向鍵開車','只能開在馬路、人行道和廣場上。撞到東西會彈回來，開回來時桑董會在門口喘著等你。');
   switchTab('now');
 }
@@ -2883,6 +2885,8 @@ function stopDrive(){
   DRIVE.on=false;
   nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
   SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03);   // 熄火
+  placeParty();                                   // 同伴一起下車，排在你身後
+  if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
   toast('試駕結束，桑董把車開回車行了');
   showCard('試駕','桑董車行的二手車','開了大約 '+d+' 格','下車的時候引擎還熱熱的。桑董喘著跑過來，把車開回車行原本的位置。');
   addLog('在桑董車行試駕了一台車，開了大約 '+d+' 格（'+clockStr()+'）');
@@ -2926,7 +2930,9 @@ function drawDriveCar(x,y,time){
   ctx.restore();
   // 頭上掛名牌，知道車裡是誰
   ctx.font='500 10.5px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
-  var lb=(PL.label||'你')+' 試駕中', tw=ctx.measureText(lb).width;
+  var pas=[]; buddyParty().forEach(function(n){ pas.push(n.n); if(n.dog&&n.dog.name)pas.push(n.dog.name); });
+  if(PDOG&&PDOG.name)pas.push(PDOG.name);
+  var lb=(PL.label||'你')+' 試駕中'+(pas.length?' · 載著 '+pas.join('、'):''), tw=ctx.measureText(lb).width;
   ctx.fillStyle='rgba(24,30,26,.72)'; rrect(ctx,x-tw/2-6,y-38,tw+12,16,8); ctx.fill();
   ctx.fillStyle='#f2f6f0'; ctx.fillText(lb,x,y-27); ctx.textAlign='left';
 }
@@ -3344,7 +3350,10 @@ function step(dt){
     dx=joy.nx; dy=joy.ny;
     push=Math.min(1,(joy.mag-JOY_DEAD)/(0.9-JOY_DEAD));
   }
-  if(DRIVE.on) driveStep(dt,dx,dy,push);          // 試駕中：用開車的方式移動
+  if(DRIVE.on){ driveStep(dt,dx,dy,push);        // 試駕中：用開車的方式移動
+    buddyParty().forEach(function(n){ n.x=state.px/TS; n.y=state.py/TS; if(n.dog){n.dog.x=n.x;n.dog.y=n.y;} });   // 同伴坐在車上
+    if(PDOG){ PDOG.x=state.px/TS; PDOG.y=state.py/TS; }
+  }
   state.moving = DRIVE.on?(Math.abs(DRIVE.speed)>15?1:0):(push>0.02?1:0);
   // 走路／跑步由玩家自己切換（R 鍵或手機的「走／跑」鈕），按住 Shift 暫時跑；不再推久了自動加速
   var ramp = (state.run||keys['shift']) ? 1 : 0;
