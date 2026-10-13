@@ -1296,7 +1296,7 @@ function render(dt,time){
   for(i=0;i<NPCS.length;i++){var nb2=NPCS[i];        // 對話氣泡
     if(nb2.sayT>0&&nb2.x>x0-4&&nb2.x<x1+4&&nb2.y>y0-4&&nb2.y<y1+4)
       drawBubble(nb2.x*TS-ox,nb2.y*TS-oy-50,nb2.say,nb2.ask>0);
-    var dg=nb2.dog; if(dg&&dg.sayT>0) drawBubble(dg.x*TS-ox,dg.y*TS-oy-12,dg.say,false);   // 放低一點，避開主人的名牌}
+    var dg=nb2.dog; if(dg&&dg.sayT>0) drawBubble(dg.x*TS-ox,dg.y*TS-oy-12,dg.say,false);}   // 狗的泡泡放低一點，避開主人的名牌
   drawFists(ox,oy);
 
   // 地點招牌
