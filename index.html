@@ -100,6 +100,7 @@ body.focus-mode .viewport #game{
 body.focus-mode .hud-btn{top:calc(10px + env(safe-area-inset-top))}
 body.focus-mode .audio-btn{right:calc(10px + env(safe-area-inset-right))}
 body.focus-mode .fs-btn{right:calc(56px + env(safe-area-inset-right))}
+body.focus-mode .who-btn{right:calc(102px + env(safe-area-inset-right))}
 /* 小地圖預設在 viewport 左上，加 safe-area 避開瀏海和橫向側邊 notch */
 body.focus-mode canvas.minimap{
   top:calc(8px + env(safe-area-inset-top));
@@ -177,6 +178,24 @@ body.focus-mode .pad{
 .hud-btn[aria-pressed="true"]{background:rgba(46,125,107,.78);border-color:rgba(243,247,241,.55)}
 .audio-btn{right:10px}
 .fs-btn{right:56px}
+.who-btn{right:102px}
+/* 選角色 */
+body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{display:none!important}
+.who{position:absolute;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(10,16,14,.62);padding:12px}
+.who.on{display:flex}
+.who-box{width:min(580px,100%);max-height:100%;overflow:auto;background:var(--panel);color:var(--ink);border-radius:14px;padding:14px 14px 16px;box-shadow:0 12px 34px rgba(0,0,0,.45)}
+.who-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.who-head b{font-size:17px;letter-spacing:.06em}
+.who-sub{font-size:12px;color:var(--ink3);margin-bottom:10px}
+.who-close{background:none;border:0;color:var(--ink3);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px}
+.who-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.who-card{display:flex;gap:9px;align-items:center;text-align:left;padding:8px 10px 8px 6px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);cursor:pointer;color:var(--ink)}
+.who-card:hover{border-color:var(--ink3)}
+.who-card.cur{border-color:var(--jade);box-shadow:inset 0 0 0 1px var(--jade)}
+.who-card canvas{flex:none;width:54px;height:56px}
+.who-card .nm{font-weight:700;font-size:14px;line-height:1.3}
+.who-card .wh{font-size:11px;color:var(--jade);letter-spacing:.04em}
+.who-card .ds{font-size:11.5px;color:var(--ink2);line-height:1.4;margin-top:2px}
 
 /* ---- 類比搖桿 ---- */
 #stickzone{position:absolute;left:0;top:54px;width:48%;bottom:0;z-index:4;touch-action:none;pointer-events:auto}
@@ -290,10 +309,18 @@ body.focus-mode .pad{
     <section class="viewport">
       <canvas id="game" width="960" height="600"></canvas>
       <canvas class="minimap" id="minimap" width="300" height="213"></canvas>
+      <button class="hud-btn who-btn" id="who-btn" type="button" aria-label="換角色" title="換角色">👤</button>
       <button class="hud-btn fs-btn" id="fs-btn" type="button" aria-pressed="false" aria-label="全螢幕切換" title="全螢幕（按 F 切換）">⛶</button>
       <button class="hud-btn audio-btn" id="audio-btn" type="button" aria-pressed="false" aria-label="聲音開關" title="聲音關（按 M 開啟）">🔇</button>
       <div class="hint" id="hint"></div>
       <div class="toast" id="toast"></div>
+      <div class="who" id="who" role="dialog" aria-label="選擇角色">
+        <div class="who-box">
+          <div class="who-head"><b>你想當誰？</b><button class="who-close" id="who-close" type="button" aria-label="關閉">✕</button></div>
+          <div class="who-sub">選一個人，從他平常在的地方開始走。之後可以按右上角的 👤 換人。</div>
+          <div class="who-grid" id="who-grid"></div>
+        </div>
+      </div>
       <div id="stickzone"></div>
       <div id="stick"><div id="stick-base"><div id="stick-knob"></div></div></div>
       <div class="pad">
@@ -340,10 +367,12 @@ body.focus-mode .pad{
           <li><kbd>M / F</kbd><span>聲音開關 / 全螢幕切換</span></li>
         </ul>
         <p class="note">台中、永和、台東是三張地圖。台中的<b>高鐵台中站</b>前按 <b>E</b> 搭高鐵到板橋、再轉捷運到永和；台中的<b>台中車站</b>（紅磚老站房旁）前按 <b>E</b> 搭台鐵普悠瑪號經南迴線到台東。永和的捷運永安市場站、台東的台東車站都可以搭回台中。坐車途中點一下可以直接跳到抵達。</p>
+        <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
         <div class="act">
+          <button id="btn-who">換角色</button>
           <button id="btn-rest">休息一下（跳到下個時段）</button>
           <button id="btn-reset" class="danger">清除進度</button>
         </div>
@@ -830,7 +859,39 @@ var WORLDS={tc:TC, yh:YH, td:TD};
 var POIS=[], ITEMS=[], NPCS=[], AREAS=[], GATES=[];
 var DEX_ALL=TC.items.concat(YH.items,TD.items), POIS_ALL=TC.pois.concat(YH.pois,TD.pois);
 TC.items.concat(YH.items,TD.items).forEach(function(it){it.x+=0.5;it.y+=0.5;});
-TC.npcs.concat(YH.npcs,TD.npcs).forEach(function(n){n.x+=0.5;n.y+=0.5;n.li=0;n.wait=Math.random()*3;});
+/* ---- 可以扮演的角色 ----
+   路人甲是原本的模式；其他五位對應地圖上的 NPC（npc 欄位是 NPC 的名字）。
+   選了誰：外型用他的、從他的位置出生、地圖上那個 NPC 隱藏；泡芙花花還會帶著泡芙、自己對狗講話。 */
+var CHARS=[
+ {id:'passer', name:'路人甲',         world:'tc', where:'台中・高鐵台中站',   desc:'誰都不是的旅人，從高鐵站出發。'},
+ {id:'hank',   name:'Hank',           npc:'Hank',           world:'yh', where:'永和・永安市場旁', desc:'住在永和，水煎包要早上去買。'},
+ {id:'puff',   name:'泡芙花花',       npc:'泡芙花花',       world:'tc', where:'台中・草悟道',     desc:'臘腸狗泡芙會一直跟著妳。'},
+ {id:'sang',   name:'桑董說車',       npc:'桑董說車',       world:'tc', where:'台中・桑董二手車行', desc:'車行老闆，麻將桌就是辦公桌。'},
+ {id:'sui',    name:'你好敝姓隨名便', npc:'你好敝姓隨名便', world:'tc', where:'台中・桑董二手車行', desc:'桑董的同事。你好，敝姓隨，名便。'},
+ {id:'luck',   name:'小幸運',         npc:'小幸運',         world:'td', where:'台東・鐵花村',     desc:'在鐵花村的燈籠下等表演開始。'}
+];
+var PL={c:'#f1e3cf',c2:'#2e7d6b'}, PDOG=null, POWN=null;   // 玩家外型、玩家的狗、狗的「主人」位置
+function charById(id){ for(var i=0;i<CHARS.length;i++)if(CHARS[i].id===id)return CHARS[i]; return CHARS[0]; }
+function charNpc(ch){ if(!ch||!ch.npc)return null; var all=TC.npcs.concat(YH.npcs,TD.npcs);
+  for(var i=0;i<all.length;i++)if(all[i].n===ch.npc)return all[i]; return null; }
+function setupPlayer(){
+  var n=charNpc(charById(state.char));
+  PL=n?{c:n.c,c2:n.c2,hs:n.hs,label:n.n,idle:n.idle,pet:n.pet,petName:n.petName}:{c:'#f1e3cf',c2:'#2e7d6b'};
+  if(PL.pet){
+    POWN={x:state.px/TS,y:state.py/TS};
+    PDOG=POWN.dog={x:POWN.x+0.9,y:POWN.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0,name:PL.petName||''};
+  }else{ PDOG=null; POWN=null; }
+  state.pIdleT=4; state.pSayT=0;
+}
+function placeAtHome(){                         // 在自己的城市就站到自己的老位置
+  var ch=charById(state.char), n=charNpc(ch);
+  if(!n||state.world!==ch.world)return;
+  state.px=n.ox*TS; state.py=n.oy*TS;
+  nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
+  if(typeof cam!=='undefined'&&cam){ cam.x=state.px-(cv.vw||600)/2; cam.y=state.py-(cv.vh||400)/2; }
+  if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
+}
+TC.npcs.concat(YH.npcs,TD.npcs).forEach(function(n){n.x+=0.5;n.y+=0.5;n.ox=n.x;n.oy=n.y;n.li=0;n.wait=Math.random()*3;});
 
 // arrive：從別的城市坐車過來就站在出口，否則（新開遊戲）站在出生點
 function loadWorld(id,from){
@@ -838,7 +899,8 @@ function loadWorld(id,from){
   state.world=W.id;
   terrain.fill(0); mask.fill(0); buildings.length=0; props.length=0;
   W.build();
-  POIS=W.pois; ITEMS=W.items; NPCS=W.npcs; AREAS=W.areas; GATES=W.gates;
+  var me=charById(state.char).npc;               // 自己扮演的人不會出現在地圖上
+  POIS=W.pois; ITEMS=W.items; NPCS=W.npcs.filter(function(n){return n.n!==me;}); AREAS=W.areas; GATES=W.gates;
   ITEMS.forEach(function(it){nudge(it);});
   NPCS.forEach(function(n){nudge(n);n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.sayT=0;
     if(n.pet){ n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0,name:n.petName||''}; }
@@ -851,6 +913,7 @@ function loadWorld(id,from){
   if(typeof mmBase!=='undefined'&&mmBase) rebuildMini();
   var wl=document.getElementById('mm-world'); if(wl) wl.textContent=W.en;
   var hd=document.getElementById('hud-city'); if(hd) hd.textContent=W.name;
+  setupPlayer();
 }
 
 /* ============ 狀態 ============ */
@@ -861,7 +924,7 @@ var state={
 };
 var KEY='tc-yh-stroll-v1';
 function save(){
-  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
 }
 function load(){
   try{
@@ -874,6 +937,7 @@ function load(){
       if(typeof d.hits==='number')state.hits=d.hits;
       if(d.world==='tc'||d.world==='yh'||d.world==='td')state.world=d.world;
       if(d.run)state.run=1;
+      if(typeof d.char==='string'&&d.char)state.char=d.char;
       if(typeof d.btWins==='number')state.btWins=d.btWins;
       if(d.mUnlocked)state.mUnlocked=1;
       if(Array.isArray(d.party))state.party=d.party;
@@ -899,6 +963,7 @@ function nudge(o){   // 把東西移到最近的可走格
 }
 load();
 loadWorld(state.world||'tc');
+placeAtHome();
 
 /* ============ 同事：跟隨、抽菸、揮拳 ============ */
 var trail=[], fists=[], puffs=[], FOLLOW_GAP=6;
@@ -1457,6 +1522,7 @@ function render(dt,time){
     if(it.night&&night()<0.5)continue;
     if(it.x>x0-2&&it.x<x1+2&&it.y>y0-3&&it.y<y1+3)layer.push({y:it.y,k:'i',o:it});}
   layer.push({y:state.py/TS,k:'me',o:null});
+  if(PDOG)layer.push({y:PDOG.y,k:'dog',o:PDOG});
   layer.sort(function(a,b){return a.y-b.y;});
 
   for(i=0;i<layer.length;i++){
@@ -1471,7 +1537,7 @@ function render(dt,time){
     else if(L.k==='i')drawItem(L.o,ox,oy,time);
     else{
       var bob = state.moving&&!reduce ? Math.sin(state.anim*11)*2 : 0;
-      drawPerson(state.px-ox,state.py-oy,'#f1e3cf','#2e7d6b',state.dir,bob,null);
+      drawPerson(state.px-ox,state.py-oy,PL.c,PL.c2,state.dir,bob,PL.label||null,PL.hs);
     }
   }
 
@@ -1483,6 +1549,7 @@ function render(dt,time){
     if(nb2.sayT>0&&nb2.x>x0-4&&nb2.x<x1+4&&nb2.y>y0-4&&nb2.y<y1+4)
       drawBubble(nb2.x*TS-ox,nb2.y*TS-oy-50,nb2.say,nb2.ask>0);
     var dg=nb2.dog; if(dg&&dg.sayT>0) drawBubble(dg.x*TS-ox,dg.y*TS-oy-12,dg.say,false);}   // 狗的泡泡放低一點，避開主人的名牌
+  if(state.pSayT>0) drawBubble(state.px-ox,state.py-oy-50,state.pSay,false);     // 玩家自己講的話
   drawFists(ox,oy);
 
   // 地點招牌
@@ -2429,6 +2496,7 @@ function areaName(){
 /* ============ 輸入 ============ */
 window.addEventListener('keydown',function(e){
   var k=e.key.toLowerCase();
+  if(whoOpen){ e.preventDefault(); if(k==='escape')closeWho(); return; }
   if(RIDE.on){ e.preventDefault(); if((k==='e'||k==='enter'||k===' ')&&!e.repeat)rideSkip(); else if(k==='m')toggleAudio(); return; }
   if(BT.on){                                   // 對戰中鍵盤全部交給對戰選單（M/F 照常）
     e.preventDefault();
@@ -2626,6 +2694,48 @@ function toggleRun(){
 }
 rBtn.addEventListener('click',function(e){e.preventDefault();toggleRun();});
 syncRunBtn();
+
+/* ---- 選角色畫面 ---- */
+var whoOpen=false, whoEl=document.getElementById('who');
+function buildWho(){
+  var g=document.getElementById('who-grid'); g.innerHTML='';
+  CHARS.forEach(function(ch){
+    var n=charNpc(ch), look=n?{c:n.c,c2:n.c2,hs:n.hs,pet:n.pet}:{c:'#f1e3cf',c2:'#2e7d6b'};
+    var b=document.createElement('button'); b.type='button'; b.className='who-card'+((state.char||'')===ch.id?' cur':'');
+    var pc=document.createElement('canvas'); pc.width=108; pc.height=112;
+    var saved=ctx; ctx=pc.getContext('2d'); ctx.scale(2,2);       // 借用遊戲的畫人函式畫小頭像
+    drawPerson(look.pet?18:27,52,look.c,look.c2,'down',0,null,look.hs);
+    if(look.pet){ ctx.save(); ctx.translate(40,53); ctx.scale(0.8,0.8); drawDog(0,0,{dir:-1,sit:3,moving:0,walk:0},0.4); ctx.restore(); }
+    ctx=saved;
+    var tx=document.createElement('div');
+    tx.innerHTML='<div class="nm"></div><div class="wh"></div><div class="ds"></div>';
+    tx.querySelector('.nm').textContent=ch.name; tx.querySelector('.wh').textContent=ch.where; tx.querySelector('.ds').textContent=ch.desc;
+    b.appendChild(pc); b.appendChild(tx);
+    b.addEventListener('click',function(){ pickChar(ch.id); });
+    g.appendChild(b);
+  });
+}
+function openWho(){
+  buildWho(); whoOpen=true; whoEl.classList.add('on'); document.body.classList.add('in-who');
+  keys={}; joyReset();
+}
+function closeWho(){
+  whoOpen=false; whoEl.classList.remove('on'); document.body.classList.remove('in-who');
+  if(!state.char){ state.char='passer'; save(); }               // 第一次直接關掉就當路人甲
+}
+function pickChar(id){
+  var ch=charById(id);
+  state.char=ch.id;
+  loadWorld(ch.world,null); placeAtHome();
+  closeWho(); save(); updateHUD(); drawMini();
+  toast('你現在是 '+ch.name);
+  showCard('角色',ch.name,ch.where,ch.desc);
+  addLog('換成用'+ch.name+'的視角走走（'+clockStr()+'）');
+  switchTab('now');
+}
+document.getElementById('who-close').addEventListener('click',closeWho);
+document.getElementById('who-btn').addEventListener('click',function(e){e.preventDefault();openWho();});
+document.getElementById('btn-who').addEventListener('click',function(){openWho();});
 var fsBtn=document.getElementById('fs-btn');
 function fsElement(){
   return document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -2788,6 +2898,14 @@ function step(dt){
     pf.x+=pf.vx*dt;pf.y+=pf.vy*dt;pf.r+=dt*5.5;pf.a-=dt*0.5;
     if(pf.a<=0)puffs.splice(qk,1);}
   stepFists(dt);
+  // 玩家的狗跟著玩家；扮演有台詞的角色時偶爾自言自語
+  if(PDOG){ POWN.x=state.px/TS; POWN.y=state.py/TS; if(state.moving&&Math.abs(dx)>0.2)PDOG.side=dx>0?-1:1; stepDog(POWN,dt); }
+  if(state.pSayT>0)state.pSayT-=dt;
+  if(PL.idle&&PL.pet){
+    state.pIdleT-=dt;
+    if(state.pIdleT<=0){ var pi; do{pi=Math.floor(Math.random()*PL.idle.length);}while(PL.idle.length>1&&pi===state.pIdleLast);
+      state.pIdleLast=pi; state.pSay=PL.idle[pi]; state.pSayT=3.6; state.pIdleT=8+Math.random()*4; }
+  }
 
   // NPC 小幅漫步
   for(var i=0;i<NPCS.length;i++){var n=NPCS[i];
@@ -2872,6 +2990,7 @@ state.party.forEach(function(nm,i){
 });
 renderDex(); renderLog(); updateHUD(); drawMini();
 requestAnimationFrame(function(t){lastT=t;loop(t);});
+if(!state.char) openWho();
 })();
 </script>
 
