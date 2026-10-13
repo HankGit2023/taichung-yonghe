@@ -372,7 +372,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
         <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。一起出遊時換成隊伍裡的人，就是<b>換隊長</b>：大家原地繼續一起走；換成隊伍外的人，同伴就留在原地。</p>
-        <p class="note">任何角色走到桑董車行的二手車旁邊按 <b>E</b> 都可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）結束，車會開回車行。</p>
+        <p class="note">任何角色走到桑董車行的二手車旁邊按 <b>E</b> 都可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）就停車，車停在你旁邊，之後走過去還能再開；開回車行原本的車位附近再下車就算還車。</p>
         <p class="note">每個城市路的盡頭都有<b>國道交流道</b>（綠色指示牌）。試駕開到牌子旁按 <b>E</b> 就上高速公路，過場後從另一個城市的交流道下來繼續開：台中↔永和走國道1號、台中↔台東走國道3號接南迴公路、永和↔台東走國道5號穿過雪山隧道接蘇花改。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
@@ -656,7 +656,7 @@ function buildTC(){
   B(3,34,6,3,'shop','桑董車行');
   for(var cr=0;cr<2;cr++)for(var cc=0;cc<4;cc++){
     var cxp=11+cc*2.6, cyp=35.6+cr*2.4;
-    props.push({t:'car',x:cxp,y:cyp,v:(cr*4+cc)%6});
+    props.push({t:'car',id:cr*4+cc,x:cxp,y:cyp,v:(cr*4+cc)%6});
     mask[idx(Math.floor(cxp),Math.floor(cyp))]=1;
   }
   props.push({t:'mahjong',x:6.5,y:40.6}); mask[idx(6,40)]=1;
@@ -983,10 +983,11 @@ function loadWorld(id,from){
   var hd=document.getElementById('hud-city'); if(hd) hd.textContent=W.name;
   setupPlayer(); placeParty();
   // 試駕中換城市：回到台中時把車行裡那台車藏起來；在別的城市就沒有那台車
-  if(typeof DRIVE!=='undefined'&&DRIVE.on){
-    DRIVE.car=null;
-    if(W.id==='tc'&&DRIVE.carXY) props.forEach(function(pp){ if(pp.t==='car'&&pp.x===DRIVE.carXY.x&&pp.y===DRIVE.carXY.y){ pp.hidden=1; mask[idx(Math.floor(pp.x),Math.floor(pp.y))]=0; DRIVE.car=pp; } });
-  }
+  // 被開走的車：車行那格空著；停在這個城市的車就畫在停的地方（正在開的那台不畫）
+  var cars=state.cars||{};
+  props.forEach(function(pp){ if(pp.t==='car'&&cars[pp.id]){ pp.hidden=1; mask[idx(Math.floor(pp.x),Math.floor(pp.y))]=0; } });
+  Object.keys(cars).forEach(function(id){ var c=cars[id];
+    if(c&&c.w===W.id&&!c.driving) props.push({t:'pcar',id:+id,x:c.x,y:c.y,ang:c.ang||0,v:(+id)%6}); });
   // 交流道的綠色指示牌
   (RAMPS[W.id]||[]).forEach(function(rp){ props.push({t:'hwsign',x:rp.x+0.5,y:rp.y-1.6,text:rp.sign}); });
 }
@@ -994,13 +995,13 @@ function loadWorld(id,from){
 /* ============ 狀態 ============ */
 var state={
   px:44.5*TS, py:45*TS, dir:'down', moving:0, anim:0, hold:0, sprint:0, dustT:0,
-  world:'tc', pos:{}, clock: 8*60, found:{}, visited:{}, log:[], tab:'now', hits:0,
+  world:'tc', pos:{}, cars:{}, clock: 8*60, found:{}, visited:{}, log:[], tab:'now', hits:0,
   party:[], idleT:0, puffT:0
 };
 var KEY='tc-yh-stroll-v1';
 function save(){
   recordPos();
-  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
 }
 function load(){
   try{
@@ -1015,6 +1016,7 @@ function load(){
       if(d.run)state.run=1;
       if(typeof d.char==='string'&&d.char)state.char=d.char;
       if(d.pos&&typeof d.pos==='object')state.pos=d.pos;
+      if(d.cars&&typeof d.cars==='object')state.cars=d.cars;
       if(typeof d.btWins==='number')state.btWins=d.btWins;
       if(d.mUnlocked)state.mUnlocked=1;
       if(Array.isArray(d.party))state.party=d.party;
@@ -1272,6 +1274,7 @@ function drawProp(p,ox,oy,time){
     if(night()>0.25){ctx.fillStyle='rgba(255,226,140,.5)';ctx.fillRect(x-6,y-33,12,22);}
     return;
   }
+  if(p.t==='pcar'){ drawTopCar(x,y,p.ang||0,CAR_COLORS[p.v||0],false); return; }   // 停在路邊的車
   if(p.t==='hwsign'){                              // 國道交流道的綠色指示牌
     ctx.fillStyle='#6b7378'; ctx.fillRect(x-28,y-40,3,40); ctx.fillRect(x+25,y-40,3,40);
     ctx.fillStyle='#1f7a4c'; rrect(ctx,x-34,y-62,68,26,3); ctx.fill();
@@ -1737,7 +1740,7 @@ function findNearest(){
     // 正在等你回答的人鎖成最高優先，免得「走」按到旁邊的人身上
     cand(n.ask>0?-1:(n.inParty?5:2), n.ask>0?5:(n.inParty?1.3:3.2), 'npc', n, n.x, n.y);}
   for(i=0;i<GATES.length;i++){var G=GATES[i]; cand(3,3.2,'gate',G,G.x,G.y);}
-  if(!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if(CP.t==='car'&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // 每個人都可以試駕
+  if(!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if((CP.t==='car'||CP.t==='pcar')&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // 每個人都可以試駕／開走停著的車
   for(i=0;i<POIS.length;i++){var P=POIS[i];
     cand(4,8,'poi',P,P.x+0.5,P.y+0.5);}
   return best;
@@ -3031,33 +3034,59 @@ function canDrive(px,py){
   return true;
 }
 function startDrive(car){
-  DRIVE={on:true, car:car, carXY:{x:car.x,y:car.y}, ang:0, speed:0, col:CAR_COLORS[car.v||0], dist:0};
-  car.hidden=1; mask[idx(Math.floor(car.x),Math.floor(car.y))]=0;
-  // 先把車挪到兩排車中間的走道（車頭朝右、朝文心路），不然一開就撞到隔壁那台
-  state.px=car.x*TS; state.py=car.y*TS-6;
-  var offs=[1.2,-1.2,2.4,-2.4,0];
-  for(var oi=0;oi<offs.length;oi++){ var ty2=(car.y+offs[oi])*TS-6; if(canDrive(state.px,ty2)&&canDrive(state.px+40,ty2)){ state.py=ty2; break; } }
+  var parked=car.t==='pcar';
+  DRIVE={on:true, id:car.id, ang:parked?(car.ang||0):0, speed:0, col:CAR_COLORS[car.v||0], dist:0};
+  state.cars=state.cars||{}; state.cars[car.id]={driving:1};
+  if(parked){                                     // 停在路邊的車：從停的位置、停的方向直接開
+    props.splice(props.indexOf(car),1);
+    state.px=car.x*TS; state.py=car.y*TS;
+  }else{
+    car.hidden=1; mask[idx(Math.floor(car.x),Math.floor(car.y))]=0;
+    // 先把車挪到兩排車中間的走道（車頭朝右、朝文心路），不然一開就撞到隔壁那台
+    state.px=car.x*TS; state.py=car.y*TS-6;
+    var offs=[1.2,-1.2,2.4,-2.4,0];
+    for(var oi=0;oi<offs.length;oi++){ var ty2=(car.y+offs[oi])*TS-6; if(canDrive(state.px,ty2)&&canDrive(state.px+40,ty2)){ state.py=ty2; break; } }
+  }
   keys={}; joyReset();
   [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,i*0.09,'sawtooth',0.035);});   // 發動引擎
   var sang=NPCS.filter(function(n){return n.n==='桑董說車';})[0];
-  if(sang)say(sang,'喘…小心開…喘…',3.5);
+  if(sang&&!parked)say(sang,'喘…小心開…喘…',3.5);
   var riders=buddyParty().map(function(n){return n.n;});
-  toast(riders.length?(riders.join('、')+' 也一起上車了'):'試駕開始！按 E 或「下車」結束');
-  showCard('試駕','桑董車行的二手車','用搖桿或方向鍵開車','只能開在馬路、人行道和廣場上。撞到東西會彈回來，開回來時桑董會在門口喘著等你。');
-  switchTab('now');
+  toast(riders.length?(riders.join('、')+' 也一起上車了'):(parked?'上車了！按 E 或「下車」停車':'試駕開始！按 E 或「下車」停車'));
+  if(!parked){ showCard('試駕','桑董車行的二手車','用搖桿或方向鍵開車','只能開在馬路、人行道和廣場上。下車時車就停在你旁邊；開回車行原本的車位附近再下車，就算還車。'); switchTab('now'); }
+  save();
 }
 function stopDrive(){
-  var c=DRIVE.car, d=Math.round(DRIVE.dist/TS), away=!c;
-  if(c){ c.hidden=0; mask[idx(Math.floor(c.x),Math.floor(c.y))]=1; }   // 不在台中下車的話，車由桑董派人開回去
+  var d=Math.round(DRIVE.dist/TS), id=DRIVE.id, cx=state.px/TS, cy=state.py/TS, ang=DRIVE.ang;
   DRIVE.on=false;
+  // 停回車行原本的車位附近 → 算還車
+  var home=null;
+  if(state.world==='tc') props.forEach(function(pp){ if(pp.t==='car'&&pp.id===id) home=pp; });
+  var returned=home&&Math.hypot(home.x-cx,home.y-cy)<3;
+  if(returned){
+    delete state.cars[id]; home.hidden=0; mask[idx(Math.floor(home.x),Math.floor(home.y))]=1;
+  }else{
+    state.cars[id]={w:state.world,x:+cx.toFixed(2),y:+cy.toFixed(2),ang:+ang.toFixed(3)};
+    props.push({t:'pcar',id:id,x:cx,y:cy,ang:ang,v:id%6});
+    // 人從駕駛座那側下車（車頭方向的左手邊），站到車旁邊
+    var sx=Math.cos(ang-Math.PI/2), sy=Math.sin(ang-Math.PI/2);
+    state.px=(cx+sx*1.1)*TS; state.py=(cy+sy*1.1+0.4)*TS;
+  }
   nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
   SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03);   // 熄火
   placeParty();                                   // 同伴一起下車，排在你身後
   if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
-  toast(away?'下車了，桑董會派人把車開回台中':'試駕結束，桑董把車開回車行了');
-  showCard('試駕','桑董車行的二手車','開了大約 '+d+' 格','下車的時候引擎還熱熱的。桑董喘著跑過來，把車開回車行原本的位置。');
-  addLog(away?('開著桑董車行的車到了'+WORLDS[state.world].name+'，在這裡下車（'+clockStr()+'）'):('在桑董車行試駕了一台車，開了大約 '+d+' 格（'+clockStr()+'）'));
-  save();
+  var city=WORLDS[state.world].name;
+  if(returned){
+    toast('把車停回桑董車行了');
+    showCard('還車','桑董車行的二手車','開了大約 '+d+' 格','車停回原本的位置。桑董喘著走過來摸了摸引擎蓋：「喘…還…還好嗎…」');
+    addLog('把試駕的車停回桑董車行，開了大約 '+d+' 格（'+clockStr()+'）');
+  }else{
+    toast('車停在旁邊了，走過去就能再開');
+    showCard('停車',city+'・'+areaName(),'車停在你旁邊','下次走到車旁按 E 就能再開。開回桑董車行原本的車位附近再下車，就算還車。');
+    addLog('把車停在'+city+'・'+areaName()+'（'+clockStr()+'）');
+  }
+  switchTab('now'); save();
 }
 function driveStep(dt,dx,dy,push){
   if(push>0.02){
@@ -3077,24 +3106,27 @@ function driveStep(dt,dx,dy,push){
   var a=DRIVE.ang;
   state.dir=Math.abs(Math.cos(a))>Math.abs(Math.sin(a))?(Math.cos(a)>0?'right':'left'):(Math.sin(a)>0?'down':'up');
 }
-function drawDriveCar(x,y,time){
+function drawTopCar(x,y,ang,col,lights){         // 從上往下看的車（開著的、停著的都用）
   var n=night();
-  ctx.save(); ctx.translate(x,y-4); ctx.rotate(DRIVE.ang);
-  if(n>0.25){                                       // 晚上車頭燈照出去
+  ctx.save(); ctx.translate(x,y-4); ctx.rotate(ang);
+  if(lights&&n>0.25){                               // 晚上車頭燈照出去
     var lg=ctx.createRadialGradient(16,0,2,40,0,46);
     lg.addColorStop(0,'rgba(255,236,170,'+(0.55*n)+')'); lg.addColorStop(1,'rgba(255,236,170,0)');
     ctx.fillStyle=lg; ctx.beginPath(); ctx.moveTo(14,-5); ctx.lineTo(70,-24); ctx.lineTo(70,24); ctx.lineTo(14,5); ctx.closePath(); ctx.fill();
   }
   ctx.fillStyle='rgba(20,24,20,.28)'; rrect(ctx,-15,-8,32,19,6); ctx.fill();          // 影子
   ctx.fillStyle='#1b1b1f'; [[-11,-9.5],[7,-9.5],[-11,6.5],[7,6.5]].forEach(function(w){ rrect(ctx,w[0],w[1],6,3,1); ctx.fill(); });   // 輪胎
-  ctx.fillStyle=DRIVE.col; rrect(ctx,-16,-8,32,16,5); ctx.fill();                      // 車身（俯視）
+  ctx.fillStyle=col; rrect(ctx,-16,-8,32,16,5); ctx.fill();                           // 車身（俯視）
   ctx.fillStyle='rgba(255,255,255,.18)'; rrect(ctx,-14,-6.5,28,4,2); ctx.fill();      // 反光
   ctx.fillStyle='#24313d'; rrect(ctx,2,-6,7,12,2); ctx.fill();                        // 前擋風玻璃
   ctx.fillStyle='#2e3b47'; rrect(ctx,-11,-5.5,5,11,2); ctx.fill();                    // 後擋風玻璃
-  ctx.fillStyle=DRIVE.col; ctx.globalAlpha=0.85; rrect(ctx,-6,-6,8,12,2); ctx.fill(); ctx.globalAlpha=1;   // 車頂
-  ctx.fillStyle='#ffe9a8'; ctx.fillRect(14.5,-6.5,2,3); ctx.fillRect(14.5,3.5,2,3);    // 頭燈
-  ctx.fillStyle='#d23c32'; ctx.fillRect(-16.5,-6.5,2,3); ctx.fillRect(-16.5,3.5,2,3);  // 尾燈
+  ctx.fillStyle=col; ctx.globalAlpha=0.85; rrect(ctx,-6,-6,8,12,2); ctx.fill(); ctx.globalAlpha=1;   // 車頂
+  ctx.fillStyle=lights?'#ffe9a8':'#d8d2b8'; ctx.fillRect(14.5,-6.5,2,3); ctx.fillRect(14.5,3.5,2,3);    // 頭燈
+  ctx.fillStyle=lights?'#d23c32':'#8a3a34'; ctx.fillRect(-16.5,-6.5,2,3); ctx.fillRect(-16.5,3.5,2,3);  // 尾燈
   ctx.restore();
+}
+function drawDriveCar(x,y,time){
+  drawTopCar(x,y,DRIVE.ang,DRIVE.col,true);
   // 頭上掛名牌，知道車裡是誰
   ctx.font='500 10.5px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
   var pas=[]; buddyParty().forEach(function(n){ pas.push(n.n); if(n.dog&&n.dog.name)pas.push(n.dog.name); });
@@ -3650,7 +3682,7 @@ function loop(t){
     if(rp1){ hintEl.innerHTML='<kbd>E</kbd>'+rp1.label; hintEl.classList.add('on'); setAbtn('上國道',true); }
     else{ hintEl.innerHTML='<kbd>E</kbd>下車，結束試駕'; hintEl.classList.add('on'); setAbtn('下車',true); } }
   else if(nearest){
-    var label = nearest.k==='car'?'試駕這台車'
+    var label = nearest.k==='car'?(nearest.o.t==='pcar'?'開這台車':'試駕這台車')
       : nearest.k==='gate'?nearest.o.label
       : nearest.k==='item'?'撿起發亮的東西'
       : nearest.k==='npc'? npcLabel(nearest.o)[0]
@@ -3658,7 +3690,7 @@ function loop(t){
     hintEl.innerHTML='<kbd>E</kbd>'+label;
     hintEl.classList.add('on');
     // 行動按鈕用短版動詞，塞得進 68px 圓鈕
-    var shortLabel = nearest.k==='car'?'試駕'
+    var shortLabel = nearest.k==='car'?(nearest.o.t==='pcar'?'開車':'試駕')
       : nearest.k==='gate'?nearest.o.short
       : nearest.k==='item'?'撿'
       : nearest.k==='npc'? npcLabel(nearest.o)[1]
