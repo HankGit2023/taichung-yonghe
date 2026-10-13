@@ -179,6 +179,8 @@ body.focus-mode .pad{
 .audio-btn{right:10px}
 .fs-btn{right:56px}
 .who-btn{right:102px}
+/* 打麻將時把搖桿、行動鈕、小地圖、提示收起來 */
+body.in-mj .pad, body.in-mj #stickzone, body.in-mj #stick, body.in-mj .minimap, body.in-mj .hint, body.in-mj .toast{display:none!important}
 /* 選角色 */
 body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{display:none!important}
 .who{position:absolute;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(10,16,14,.62);padding:12px}
@@ -368,6 +370,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         </ul>
         <p class="note">台中、永和、台東是三張地圖。台中的<b>高鐵台中站</b>前按 <b>E</b> 搭高鐵到板橋、再轉捷運到永和；台中的<b>台中車站</b>（紅磚老站房旁）前按 <b>E</b> 搭台鐵普悠瑪號經南迴線到台東。永和的捷運永安市場站、台東的台東車站都可以搭回台中。坐車途中點一下可以直接跳到抵達。</p>
         <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
+        <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
@@ -675,16 +678,16 @@ var TC={
    {x:15,y:61,n:'高鐵車票',w:'台中・高鐵站',d:'台中到板橋，自由座。'}
   ],
   npcs:[
-   {x:40,y:22,c:'#f8e7da',c2:'#f5f5f0',n:'泡芙花花',named:1,hs:'puff',pet:'dachshund',petName:'泡芙',
+   {x:40,y:22,c:'#f8e7da',c2:'#f5f5f0',n:'泡芙花花',named:1,buddy:1,hs:'puff',pet:'dachshund',petName:'泡芙',
     idle:['小狗～妳怎麼這麼可愛','小狗⋯妳要尿尿哦','小狗 妳肚子餓哦'],
     l:['超好笑','啊 薯條了','素喔','好無聊==','你老了']},
    {x:30,y:19,c:'#e9e2d4',c2:'#3c4a58',n:'歌劇院導覽員',l:['這棟樓裡面找不到一根直的柱子喔。','晚上的外牆比白天好看。','表演快開始了，記得手機靜音。']},
    {x:64,y:42,c:'#efe1cf',c2:'#a8453a',n:'市場阿姨',l:['菜頭粿剛起鍋，要不要一塊？','我們這攤開四十年了。','早點來，十點就賣完了。']},
    {x:70,y:10,c:'#f0e6d8',c2:'#3f7f68',n:'一中街的學生',l:['補習班下課就是來這裡。','這家雞排要排二十分鐘。','手搖飲半糖少冰，不能再甜了。']},
-   {x:4,y:40,c:'#d8a77f',c2:'#f2f2ee',n:'桑董說車',named:1,hs:'ga',stay:1,dir:'right',star:'#e3a21a',
+   {x:4,y:40,c:'#d8a77f',c2:'#f2f2ee',n:'桑董說車',named:1,mj:1,hs:'ga',stay:1,dir:'right',star:'#e3a21a',
     idle:['喘…喘…','碰！…喘…喘…','喘…喘…喘..','聽牌了…喘…'],     // 不知道在喘什麼
     l:['喘…喘…喘..']},
-   {x:8,y:40,c:'#d9a57a',c2:'#2b2b2e',n:'你好敝姓隨名便',named:1,hs:'gb',stay:1,dir:'left',star:'#e3a21a',
+   {x:8,y:40,c:'#d9a57a',c2:'#2b2b2e',n:'你好敝姓隨名便',named:1,mj:1,hs:'gb',stay:1,dir:'left',star:'#e3a21a',
     idle:['吃！','自摸！三台！','槓！嶺上開花啦','你很慢欸，快點出牌'],
     l:['你好，敝姓隨，名便','看車找桑董，打牌找我','要不要坐下來一起摸兩圈？']},
    {x:87,y:60,c:'#e4dccd',c2:'#8c6a3e',n:'計程車司機',l:['要去高鐵站嗎？其實走過去也不遠啦。','舊站房很多人來拍婚紗。','台中路很寬，騎車小心。']}
@@ -761,7 +764,7 @@ var YH={
    {x:52,y:44,n:'悠遊卡',w:'永和・永安市場站',d:'餘額剩 37 元，還夠坐到板橋。'}
   ],
   npcs:[
-   {x:32,y:36,c:'#f2dcc4',c2:'#3b3b40',n:'Hank',named:1,hs:'hank',
+   {x:32,y:36,c:'#f2dcc4',c2:'#3b3b40',n:'Hank',named:1,buddy:1,hs:'hank',
     l:['對面有妹子 我要加她好友'],
     lBy:{puff:['不愧是神輔','我落枕了','對面有妹子 我要加她好友']}},
    {x:63,y:21,c:'#f1e6d4',c2:'#5c6a62',n:'豆漿店老闆',l:['鹹的還是甜的？','燒餅剛出爐，要不要加蛋？','我們半夜也有開。']},
@@ -843,7 +846,7 @@ var TD={
    {x:24,y:58,n:'池上便當',w:'台東・台東車站',d:'鐵盒便當，排骨和飯都還是熱的。'}
   ],
   npcs:[
-   {x:45,y:41,c:'#c99a78',c2:'#c8323a',n:'小幸運',named:1,hs:'luck',star:'#e0353b',
+   {x:45,y:41,c:'#c99a78',c2:'#c8323a',n:'小幸運',named:1,buddy:1,hs:'luck',star:'#e0353b',
     idle:['今天晚上這裡有表演喔','海風好舒服～','我阿嬤說，來台東就要慢慢走'],
     l:['歡迎來台東！','要不要留下來聽歌？','你從台中來的喔？好遠耶']},
    {x:28,y:32,c:'#ead9c4',c2:'#5a8a52',n:'釋迦攤阿姨',l:['這顆明天就軟了，回去放兩天。','我們家的釋迦最甜啦。','要不要切一顆給你試吃？']},
@@ -892,6 +895,7 @@ function placeAtHome(){                         // 在自己的城市就站到�
   nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
   if(typeof cam!=='undefined'&&cam){ cam.x=state.px-(cv.vw||600)/2; cam.y=state.py-(cv.vh||400)/2; }
   if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
+  placeParty();
 }
 TC.npcs.concat(YH.npcs,TD.npcs).forEach(function(n){n.x+=0.5;n.y+=0.5;n.ox=n.x;n.oy=n.y;n.li=0;n.wait=Math.random()*3;});
 
@@ -902,9 +906,11 @@ function loadWorld(id,from){
   terrain.fill(0); mask.fill(0); buildings.length=0; props.length=0;
   W.build();
   var me=charById(state.char).npc;               // 自己扮演的人不會出現在地圖上
-  POIS=W.pois; ITEMS=W.items; NPCS=W.npcs.filter(function(n){return n.n!==me;}); AREAS=W.areas; GATES=W.gates;
+  POIS=W.pois; ITEMS=W.items; AREAS=W.areas; GATES=W.gates;
+  var party=allNpcs().filter(function(n){return n.inParty;});      // 一起出遊的同伴跟著你換城市
+  NPCS=W.npcs.filter(function(n){return n.n!==me&&!n.inParty;}).concat(party);
   ITEMS.forEach(function(it){nudge(it);});
-  NPCS.forEach(function(n){nudge(n);n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.sayT=0;
+  NPCS.forEach(function(n){ if(n.inParty)return; nudge(n);n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.sayT=0;
     if(n.pet){ n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0,name:n.petName||''}; }
     if(n.idle){ n.idleT=2+Math.random()*3; n.idleLast=-1; }
     if(n.stay){ n.wait=1e9; }});                      // 坐著打牌的人不會走開
@@ -915,7 +921,7 @@ function loadWorld(id,from){
   if(typeof mmBase!=='undefined'&&mmBase) rebuildMini();
   var wl=document.getElementById('mm-world'); if(wl) wl.textContent=W.en;
   var hd=document.getElementById('hud-city'); if(hd) hd.textContent=W.name;
-  setupPlayer();
+  setupPlayer(); placeParty();
 }
 
 /* ============ 狀態 ============ */
@@ -964,6 +970,7 @@ function nudge(o){   // 把東西移到最近的可走格
   }
 }
 load();
+allNpcs().forEach(function(n){ if(n.buddy&&state.party.indexOf(n.n)>=0)n.inParty=1; });
 loadWorld(state.world||'tc');
 placeAtHome();
 
@@ -1705,6 +1712,13 @@ function interact(){
   }else if(t.k==='npc'){
     var n=t.o;
     if(n.battle){ startBattle(n); return; }      // 路人對戰
+    if(n.mj&&isBuddyChar()&&buddyParty().length){ startMahjong(); return; }   // 帶朋友來就開打
+    if(n.mj&&isBuddyChar()&&!buddyParty().length){ say(n,n.n==='桑董說車'?'三缺一…喘…再找個人來':'三缺一啦，再約個朋友來',3); toast('三缺一！先邀朋友一起來'); return; }
+    if(n.buddy&&isBuddyChar()){
+      if(n.inParty){ buddyLeave(n); switchTab('now'); return; }
+      if(n.ask>0){ buddyJoin(n); switchTab('now'); return; }
+      NPCS.forEach(function(q){q.ask=0;}); n.ask=5;   // 先講一句，再按一次就邀他
+    }
     if(n.join&&n.inParty){                      // 讓他回去上班
       n.inParty=0; n.hx=n.x;n.hy=n.y;n.tx=n.x;n.ty=n.y;n.wait=1;
       state.party=state.party.filter(function(q){return q!==n.n;});
@@ -1730,7 +1744,7 @@ function interact(){
       if(n.dog){ n.dog.sayT=2.2; n.dog.say=['汪！','汪汪！','（搖尾巴）','嗚汪～'][n.li%4]; }
       if(n.idle) n.idleT=Math.max(n.idleT,6);
       say(n,line,3.5);
-      showCard('遇到的人',n.n,'就站在你旁邊',line);
+      showCard('遇到的人',n.n,'就站在你旁邊',line+(n.buddy&&isBuddyChar()?'　（再按一次，邀他一起出遊）':''));
       toast(n.n+'：'+line);
     }
   }else{
@@ -2488,6 +2502,254 @@ cv.parentElement.addEventListener('pointerdown',function(e){
   e.preventDefault(); rideSkip();
 });
 
+/* ============ 邀約出遊 ============
+   當 Hank／泡芙花花／小幸運時，可以邀另外兩位（buddy:1）一起出遊：
+   第一次說話 → 他回一句並等你邀（n.ask）；再按一次 → 加入隊伍跟著你，搭車也一起去。
+   對隊伍裡的人說話 → 他先回家（在他的城市就走回原位，不在就直接回家）。 */
+var BUDDY_CHARS=['hank','puff','luck'];
+function isBuddyChar(){ return BUDDY_CHARS.indexOf(state.char)>=0; }
+function allNpcs(){ return TC.npcs.concat(YH.npcs,TD.npcs); }
+function buddyParty(){ return allNpcs().filter(function(n){return n.inParty;}); }
+function placeParty(){                           // 換城市或出生時，把同伴排在你身後
+  if(typeof trail!=='undefined'&&trail)trail.length=0;
+  buddyParty().forEach(function(n,i){
+    n.x=state.px/TS-(i+1)*0.95; n.y=state.py/TS; nudge(n);
+    if(n.dog){ n.dog.x=n.x-0.8; n.dog.y=n.y+0.2; }
+  });
+}
+function buddyJoin(n){
+  n.ask=0; n.inParty=1;
+  if(state.party.indexOf(n.n)<0)state.party.push(n.n);
+  say(n,'好啊，走！',2.5);
+  toast(n.n+'跟你一起出遊');
+  showCard('出遊',n.n,'加入隊伍 · 現在 '+(state.party.length+1)+' 人','他會跟著你走，搭高鐵、台鐵也一起去。對他再說一次話，他就先回家。');
+  addLog('約了'+n.n+'一起出遊（'+clockStr()+'）');
+  save();
+}
+function buddyLeave(n){
+  n.inParty=0; state.party=state.party.filter(function(q){return q!==n.n;});
+  say(n,'那我先回家囉～',3);
+  toast(n.n+'先回家了');
+  var home=TC.npcs.indexOf(n)>=0?'tc':YH.npcs.indexOf(n)>=0?'yh':'td';
+  if(home===state.world){ n.hx=n.ox; n.hy=n.oy; n.tx=n.ox; n.ty=n.oy; n.wait=0.5; }
+  else{ NPCS=NPCS.filter(function(q){return q!==n;}); n.x=n.ox; n.y=n.oy; if(n.dog){n.dog.x=n.ox+0.9;n.dog.y=n.oy+0.2;} }
+  save();
+}
+
+/* ============ 桑董車行麻將 ============
+   帶著 1～2 位同伴到麻將桌，跟桑董或隨便說話就開打：你＋1 位同伴（兩位就隨機挑一位）＋桑董＋隨便。
+   不是真的麻將：你手上 13 張，每輪摸一張、點一張打出去，其他三家自動出牌、喊碰喊喘；
+   打個三到五巡就有人胡牌，結算後回到地圖。 */
+var MJ={on:false};
+var MJ_NUM='一二三四五六七八九';
+var MJ_TALK={
+  '桑董說車':['喘…喘…','碰！…喘…','喘…喘…喘..','聽牌了…喘…'],
+  '你好敝姓隨名便':['吃！','你很慢欸，快點出牌','這張我要！','嘿嘿，聽了'],
+  'Hank':['這張安全嗎','對面有妹子 我要加她好友','我落枕了，手有點抖'],
+  '泡芙花花':['好無聊==','超好笑','素喔','啊 薯條了'],
+  '小幸運':['我不太會打耶','這張可以吃嗎？','好好玩～']
+};
+function mjDeck(){
+  var d=[], i, s, k;
+  for(s=0;s<3;s++)for(i=1;i<=9;i++)for(k=0;k<4;k++)d.push({s:s,v:i});
+  '東南西北中發白'.split('').forEach(function(h){for(k=0;k<4;k++)d.push({s:3,h:h});});
+  for(i=d.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)), t=d[i]; d[i]=d[j]; d[j]=t;}
+  return d;
+}
+function mjSort(h){ h.sort(function(a,b){ return a.s-b.s || (a.v||'東南西北中發白'.indexOf(a.h)) - (b.v||'東南西北中發白'.indexOf(b.h)); }); }
+function startMahjong(){
+  if(MJ.on)return;
+  var party=buddyParty();
+  var mate=party[Math.floor(Math.random()*party.length)];
+  var watch=party.filter(function(n){return n!==mate;});
+  var sang=allNpcs().filter(function(n){return n.n==='桑董說車';})[0];
+  var sui=allNpcs().filter(function(n){return n.n==='你好敝姓隨名便';})[0];
+  var meName=charById(state.char).name;
+  var deck=mjDeck(), hand=deck.splice(0,13); mjSort(hand);
+  keys={}; joyReset(); measureSafe();
+  MJ={on:true, phase:'intro', t:0, deck:deck, hand:hand, draw:null, sel:0, pool:[], round:1,
+      endRound:3+Math.floor(Math.random()*3), aiIdx:0, aiT:0, hits:[], result:null, outT:0,
+      seats:[ {name:meName, look:PL, me:1},
+              {name:sang.n, look:{c:sang.c,c2:sang.c2,hs:sang.hs}, pos:'left'},
+              {name:mate.n, look:{c:mate.c,c2:mate.c2,hs:mate.hs}, pos:'top'},
+              {name:sui.n,  look:{c:sui.c,c2:sui.c2,hs:sui.hs}, pos:'right'} ],
+      watch:watch.map(function(n){return n.n;})};
+  MJ.seats.forEach(function(p){p.sayT=0;p.say='';});
+  document.body.classList.add('in-mj');
+  [523,659,784].forEach(function(f,i){SND.blip(f,0.1,i*0.09,'square',0.04);});
+}
+function mjDrawTile(){ if(!MJ.deck.length)MJ.deck=mjDeck(); MJ.draw=MJ.deck.pop(); MJ.sel=MJ.hand.length; }
+function mjSay(i,txt){ MJ.seats[i].say=txt; MJ.seats[i].sayT=2.2; }
+function mjDiscard(i){                           // 你打出第 i 張（13 是剛摸的那張）
+  if(MJ.phase!=='mine')return;
+  var all=MJ.hand.concat(MJ.draw?[MJ.draw]:[]);
+  var t=all.splice(i,1)[0];
+  MJ.hand=all; mjSort(MJ.hand); MJ.draw=null;
+  MJ.pool.push({t:t,who:0});
+  SND.blip(880,0.05,0,'square',0.04);
+  MJ.phase='ai'; MJ.aiIdx=1; MJ.aiT=0;
+}
+function mjFinish(){
+  MJ.phase='end'; MJ.t=0;
+  var w=Math.random()<0.4?0:1+Math.floor(Math.random()*3);
+  var tai=1+Math.floor(Math.random()*5), how=Math.random()<0.5?'自摸':'放槍胡';
+  MJ.result={w:w, tai:tai, how:how};
+  mjSay(w, w===0?'胡了！':(MJ.seats[w].name==='桑董說車'?'胡…喘…胡了..':'胡了啦！'));
+  SND.jingle(w===0);
+}
+function mjFrame(dt,time){
+  MJ.t+=dt;
+  MJ.seats.forEach(function(p){ if(p.sayT>0)p.sayT-=dt; });
+  if(MJ.phase==='intro'&&MJ.t>1.1){ MJ.phase='mine'; mjDrawTile(); }
+  else if(MJ.phase==='ai'){
+    MJ.aiT+=dt;
+    if(MJ.aiT>0.8){
+      MJ.aiT=0;
+      var p=MJ.seats[MJ.aiIdx];
+      if(!MJ.deck.length)MJ.deck=mjDeck();
+      MJ.pool.push({t:MJ.deck.pop(),who:MJ.aiIdx});
+      SND.blip(700+MJ.aiIdx*60,0.05,0,'square',0.035);
+      var talk=MJ_TALK[p.name]; if(talk&&Math.random()<0.45) mjSay(MJ.aiIdx,talk[Math.floor(Math.random()*talk.length)]);
+      MJ.aiIdx++;
+      if(MJ.aiIdx>3){
+        if(MJ.round>=MJ.endRound) mjFinish();
+        else{ MJ.round++; MJ.phase='mine'; mjDrawTile(); }
+      }
+    }
+  }else if(MJ.phase==='out'){
+    MJ.outT+=dt;
+    if(MJ.outT>=0.5&&!MJ.done){ MJ.done=true; mjLeave(); }
+    if(MJ.outT>=1){ MJ.on=false; }
+  }
+  if(MJ.phase==='out'&&MJ.outT>=0.5){ render(0,time); ctx.fillStyle='rgba(0,0,0,'+Math.max(0,1-(MJ.outT-0.5)*2)+')'; ctx.fillRect(0,0,cv.vw,cv.vh); return; }
+  mjDraw(time);
+  if(MJ.phase==='out'){ ctx.fillStyle='rgba(0,0,0,'+(MJ.outT*2)+')'; ctx.fillRect(0,0,cv.vw,cv.vh); }
+  else if(MJ.phase==='intro'){ ctx.fillStyle='rgba(0,0,0,'+Math.max(0,1-MJ.t*2.5)+')'; ctx.fillRect(0,0,cv.vw,cv.vh); }
+}
+function mjLeave(){
+  document.body.classList.remove('in-mj');
+  var r=MJ.result, wn=MJ.seats[r.w].name;
+  toast(r.w===0?'你胡了！'+r.how+' '+r.tai+' 台':wn+' 胡了');
+  showCard('麻將','桑董車行・東風局',(r.w===0?'你':wn)+' '+r.how+' · '+r.tai+' 台',
+    '打了 '+MJ.round+' 巡。'+(MJ.watch.length?MJ.watch.join('、')+'在旁邊看了整場。':'')+(r.w===0?'桑董喘著把錢推過來。':'下一把再來。'));
+  addLog('在桑董車行打麻將，'+(r.w===0?'你':wn)+'胡了（'+clockStr()+'）');
+  switchTab('now'); save();
+}
+function mjTileFace(x,y,w,h,t,hi){
+  ctx.fillStyle='rgba(0,0,0,.25)'; rrect(ctx,x+1.5,y+2,w,h,w*0.14); ctx.fill();
+  ctx.fillStyle=hi?'#fff9dc':'#f6f1e2'; rrect(ctx,x,y,w,h,w*0.14); ctx.fill();
+  ctx.strokeStyle=hi?'#e0a020':'#c9c0a6'; ctx.lineWidth=hi?2:1; rrect(ctx,x,y,w,h,w*0.14); ctx.stroke();
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  if(t.s<3){
+    var col=['#c0392b','#2563a8','#2e7d4f'][t.s];
+    ctx.fillStyle='#2b2b2b'; ctx.font='700 '+Math.round(w*0.48)+'px "Noto Sans TC",sans-serif'; ctx.fillText(MJ_NUM[t.v-1],x+w/2,y+h*0.32);
+    ctx.fillStyle=col; ctx.font='700 '+Math.round(w*0.46)+'px "Noto Sans TC",sans-serif'; ctx.fillText('萬筒條'[t.s],x+w/2,y+h*0.7);
+  }else if(t.h==='白'){
+    ctx.strokeStyle='#2563a8'; ctx.lineWidth=1.5; ctx.strokeRect(x+w*0.25,y+h*0.25,w*0.5,h*0.5);
+  }else{
+    ctx.fillStyle=t.h==='中'?'#c0392b':t.h==='發'?'#2e7d4f':'#2b2b2b';
+    ctx.font='700 '+Math.round(w*0.62)+'px "Noto Sans TC",sans-serif'; ctx.fillText(t.h,x+w/2,y+h*0.52);
+  }
+  ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+}
+function mjTileBack(x,y,w,h){
+  ctx.fillStyle='#2f7d5b'; rrect(ctx,x,y,w,h,Math.min(w,h)*0.18); ctx.fill();
+  ctx.fillStyle='#f2ead2'; ctx.fillRect(x,y+h-Math.max(2,h*0.2),w,Math.max(2,h*0.2));
+}
+function mjDraw(time){
+  var W=cv.vw, H=cv.vh, st=safeIn.t, sb=safeIn.b;
+  MJ.hits=[];
+  var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#1d3b2c'); g.addColorStop(1,'#10241a');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // 手牌尺寸
+  var tw=Math.min(44,(W-24)/14.8,H*0.1), th=tw*1.36, handY=H-th-22-sb;   // 橫向時手牌別太大，把桌子擠小
+  // 桌面
+  // 桌子上方留位置給對家的人（頭和名牌），不要壓到標題
+  var land=W>H*1.15;                                            // 橫向：對家坐進桌子裡，桌子才放得大
+  var sc0=land?1.15:Math.max(1.3,Math.min(2,W/230)), topRoom=land?0:52*sc0;
+  var S=Math.min(W*0.9,handY-st-56-topRoom-24), cx=W/2, cy=st+56+topRoom+S/2;
+  ctx.fillStyle='#5a3a24'; rrect(ctx,cx-S/2-8,cy-S/2-8,S+16,S+16,14); ctx.fill();
+  ctx.fillStyle='#2f7a50'; rrect(ctx,cx-S/2,cy-S/2,S,S,10); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1; rrect(ctx,cx-S/2+10,cy-S/2+10,S-20,S-20,8); ctx.stroke();
+  // 上方狀態
+  ctx.fillStyle='#f3ead0'; ctx.font='700 14px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+  ctx.fillText('桑董車行 · 東風局 · 第 '+MJ.round+' 巡',W/2,st+24);
+  ctx.font='500 12px "Noto Sans TC",sans-serif'; ctx.fillStyle='#b9d3c3';
+  var tip=MJ.phase==='mine'?'輪到你了，點一張牌打出去':MJ.phase==='ai'?('等 '+MJ.seats[Math.min(3,MJ.aiIdx)].name+' 出牌…'):MJ.phase==='intro'?'洗牌、砌牌…':'';
+  ctx.fillText(tip,W/2,st+42); ctx.textAlign='left';
+  // 其他三家的牌背
+  var bw=Math.min(11,S/18), bh=bw*1.35;
+  for(var i=0;i<13;i++) mjTileBack(cx-6.5*bw+i*bw,cy-S/2+12,bw-1,bh);
+  for(i=0;i<9;i++){ mjTileBack(cx-S/2+10,cy-4.5*bh*0.75+i*bh*0.75,bh,bw*0.7); mjTileBack(cx+S/2-10-bh,cy-4.5*bh*0.75+i*bh*0.75,bh,bw*0.7); }
+  // 牌河（大家打出來的牌）
+  var pw=Math.min(30,S/9.5), ph=pw*1.36, per=Math.max(6,Math.floor((S-90)/pw));
+  var showPool=MJ.pool.slice(-per*4);
+  showPool.forEach(function(p,k){ var r=Math.floor(k/per), c=k%per;
+    mjTileFace(cx-per*pw/2+c*pw,cy-ph*2+r*(ph+2),pw-1.5,ph,p.t,k===showPool.length-1); });
+  // 三家人物
+  var pos={left:[cx-S/2+34,cy+S*0.3],top:[cx,land?cy-S/2+40*sc0:cy-S/2+4],right:[cx+S/2-34,cy+S*0.3]};
+  MJ.seats.forEach(function(p,k){
+    if(p.me)return;
+    var q=pos[p.pos], sc=sc0;
+    ctx.save(); ctx.translate(q[0],q[1]); ctx.scale(sc,sc);
+    drawPerson(0,0,p.look.c,p.look.c2,p.pos==='left'?'right':p.pos==='right'?'left':'down',0,null,p.look.hs);
+    ctx.restore();
+    // 名牌固定大小、畫在頭上，長名字也不會被放大切掉
+    ctx.font='500 11px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+    var nw=ctx.measureText(p.name).width, ny=q[1]-36*sc-6;
+    var nx=Math.max(nw/2+8,Math.min(W-nw/2-8,q[0]));
+    ctx.fillStyle='rgba(12,20,16,.78)'; rrect(ctx,nx-nw/2-6,ny-13,nw+12,16,8); ctx.fill();
+    ctx.fillStyle='#f2f6f0'; ctx.fillText(p.name,nx,ny-1); ctx.textAlign='left';
+    if(p.sayT>0) drawBubble(nx,ny-14,p.say,false);
+  });
+  // 我的手牌
+  var all=MJ.hand.concat(MJ.draw?[MJ.draw]:[]);
+  var total=all.length, x0=W/2-(13*tw+(MJ.draw?tw*1.3:0))/2;
+  ctx.fillStyle='#f3ead0'; ctx.font='700 12px "Noto Sans TC",sans-serif';
+  ctx.fillText('你（'+MJ.seats[0].name+'）',x0,handY-10);
+  if(MJ.seats[0].sayT>0) drawBubble(W/2,handY-16,MJ.seats[0].say,false);
+  all.forEach(function(t,k){
+    var x=x0+k*tw+(k===13?tw*0.3:0), sel=MJ.phase==='mine'&&k===MJ.sel;
+    var y=handY-(sel?8:0);
+    mjTileFace(x,y,tw-2,th,t,sel);
+    MJ.hits.push({x:x,y:handY-10,w:tw,h:th+12,f:(function(i){return function(){
+      if(MJ.phase!=='mine')return;
+      if(MJ.sel===i||!matchMedia('(hover:hover)').matches) mjDiscard(i); else MJ.sel=i; };})(k)});
+  });
+  // 結算
+  if(MJ.phase==='end'||MJ.phase==='out'){
+    var r=MJ.result, wn=r.w===0?'你':MJ.seats[r.w].name;
+    ctx.fillStyle='rgba(8,14,10,.72)'; ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center';
+    ctx.fillStyle='#ffd65a'; ctx.font='900 '+Math.round(Math.min(46,W/9))+'px "Noto Serif TC",serif';
+    ctx.fillText(r.w===0?'胡了！':'結束',W/2,H*0.4);
+    ctx.fillStyle='#f6f1e2'; ctx.font='700 18px "Noto Sans TC",sans-serif';
+    ctx.fillText(wn+' '+r.how+' · '+r.tai+' 台',W/2,H*0.4+38);
+    if(MJ.watch.length){ ctx.font='500 13px "Noto Sans TC",sans-serif'; ctx.fillStyle='#b9d3c3'; ctx.fillText(MJ.watch.join('、')+' 在旁邊看牌',W/2,H*0.4+64); }
+    if(MJ.phase==='end'&&Math.floor(time*2)%2===0){ ctx.font='500 13px "Noto Sans TC",sans-serif'; ctx.fillStyle='#f6f1e2'; ctx.fillText('點一下回到地圖',W/2,H*0.4+96); }
+    ctx.textAlign='left';
+  }
+}
+function mjTap(x,y){
+  if(MJ.phase==='end'){ if(MJ.t>0.8){ MJ.phase='out'; MJ.outT=0; } return; }
+  for(var i=MJ.hits.length-1;i>=0;i--){var h=MJ.hits[i]; if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){h.f();return;}}
+}
+function mjKey(k,repeat){
+  var n=MJ.hand.length+(MJ.draw?1:0);
+  if(MJ.phase==='end'){ if(!repeat&&(k==='e'||k==='enter'||k===' '))mjTap(-1,-1); return; }
+  if(MJ.phase!=='mine')return;
+  if(k==='arrowleft'||k==='a'){ MJ.sel=(MJ.sel+n-1)%n; SND.blip(660,0.03); }
+  else if(k==='arrowright'||k==='d'){ MJ.sel=(MJ.sel+1)%n; SND.blip(660,0.03); }
+  else if((k==='e'||k==='enter'||k===' ')&&!repeat) mjDiscard(MJ.sel);
+}
+cv.parentElement.addEventListener('pointerdown',function(e){
+  if(!MJ.on)return;
+  if(e.target.closest&&e.target.closest('button'))return;
+  e.preventDefault();
+  var r=cv.getBoundingClientRect();
+  mjTap((e.clientX-r.left)*cv.vw/r.width,(e.clientY-r.top)*cv.vh/r.height);
+});
+
 /* ============ 小地圖 ============ */
 var mmc=document.getElementById('minimap'), mmx=mmc.getContext('2d');
 var mmBase=document.createElement('canvas'); mmBase.width=MW*3; mmBase.height=MH*3;
@@ -2537,6 +2799,7 @@ function areaName(){
 window.addEventListener('keydown',function(e){
   var k=e.key.toLowerCase();
   if(whoOpen){ e.preventDefault(); if(k==='escape')closeWho(); return; }
+  if(MJ.on){ e.preventDefault(); if(k==='m')toggleAudio(); else mjKey(k,e.repeat); return; }
   if(RIDE.on){ e.preventDefault(); if((k==='e'||k==='enter'||k===' ')&&!e.repeat)rideSkip(); else if(k==='m')toggleAudio(); return; }
   if(BT.on){                                   // 對戰中鍵盤全部交給對戰選單（M/F 照常）
     e.preventDefault();
@@ -2766,6 +3029,7 @@ function closeWho(){
 function pickChar(id){
   var ch=charById(id);
   state.char=ch.id;
+  allNpcs().forEach(function(n){n.inParty=0;n.ask=0;}); state.party=[];   // 換人就解散隊伍
   loadWorld(ch.world,null); placeAtHome();
   closeWho(); save(); updateHUD(); drawMini();
   toast('你現在是 '+ch.name);
@@ -2951,7 +3215,7 @@ function step(dt){
   for(var i=0;i<NPCS.length;i++){var n=NPCS[i];
     if(n.sayT>0)n.sayT-=dt;
     if(n.ask>0)n.ask-=dt;
-    if(n.inParty)continue;
+    if(n.inParty){ if(n.dog)stepDog(n,dt); continue; }
     n.wait-=dt;
     if(n.wait<=0){n.tx=n.hx+(Math.random()-0.5)*3;n.ty=n.hy+(Math.random()-0.5)*3;n.wait=2+Math.random()*4;}
     var ddx=n.tx-n.x, ddy=n.ty-n.y, dd=Math.hypot(ddx,ddy);
@@ -2973,6 +3237,16 @@ function step(dt){
   state.clock=(state.clock+dt*1.5)%1440;
 }
 
+// NPC 的提示文字：[長版, 行動鈕短版]
+function npcLabel(o){
+  if(o.mj&&isBuddyChar()&&buddyParty().length) return ['坐下來打麻將','打牌'];
+  if(o.buddy&&isBuddyChar()){
+    if(o.inParty) return ['請'+o.n+'先回家','回家'];
+    if(o.ask>0) return ['邀'+o.n+'一起出遊','邀約'];
+  }
+  if(o.join) return o.inParty?['讓'+o.n+'回去上班','回去']:o.ask>0?['走','走']:['約'+o.n+'去抽菸','抽菸'];
+  return ['和'+o.n+'說話','說話'];
+}
 var hudTick=0, saveTick=0;
 function loop(t){
   var dt=Math.min(0.05,(t-lastT)/1000||0); lastT=t;
@@ -2981,6 +3255,7 @@ function loop(t){
     if(Math.abs(Math.round(vr.height)-cv.vh)>1||Math.abs(Math.max(320,Math.round(vr.width))-cv.vw)>1){ resize(); measureSafe(); }
   }
   if(RIDE.on){ rideFrame(dt,t/1000); requestAnimationFrame(loop); return; }   // 坐高鐵中
+  if(MJ.on){ mjFrame(dt,t/1000); requestAnimationFrame(loop); return; }      // 打麻將中
   if(BT.on){ battleFrame(dt,t/1000); requestAnimationFrame(loop); return; }  // 對戰中地圖凍結
   step(dt);
   render(dt,t/1000);
@@ -2989,22 +3264,14 @@ function loop(t){
   if(nearest){
     var label = nearest.k==='gate'?nearest.o.label
       : nearest.k==='item'?'撿起發亮的東西'
-      : nearest.k==='npc'? (nearest.o.join
-          ? (nearest.o.inParty ? ('讓'+nearest.o.n+'回去上班')
-            : nearest.o.ask>0 ? '走'
-            : ('約'+nearest.o.n+'去抽菸'))
-          : ('和'+nearest.o.n+'說話'))
+      : nearest.k==='npc'? npcLabel(nearest.o)[0]
       : ('看看'+nearest.o.t);
     hintEl.innerHTML='<kbd>E</kbd>'+label;
     hintEl.classList.add('on');
     // 行動按鈕用短版動詞，塞得進 68px 圓鈕
     var shortLabel = nearest.k==='gate'?nearest.o.short
       : nearest.k==='item'?'撿'
-      : nearest.k==='npc'? (nearest.o.join
-          ? (nearest.o.inParty ? '回去'
-            : nearest.o.ask>0 ? '走'
-            : '抽菸')
-          : '說話')
+      : nearest.k==='npc'? npcLabel(nearest.o)[1]
       : '查看';
     setAbtn(shortLabel, true);
   }else{ hintEl.classList.remove('on'); setAbtn('——', false); }
@@ -3021,13 +3288,7 @@ function loop(t){
 
 nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
 // 讀檔：把上次還跟著的同事放回你身後
-state.party.forEach(function(nm,i){
-  for(var k=0;k<NPCS.length;k++)if(NPCS[k].n===nm){
-    NPCS[k].inParty=1;
-    NPCS[k].x=state.px/TS-(i+1)*0.95; NPCS[k].y=state.py/TS;
-    nudge(NPCS[k]);
-  }
-});
+placeParty();
 renderDex(); renderLog(); updateHUD(); drawMini();
 requestAnimationFrame(function(t){lastT=t;loop(t);});
 if(!state.char) openWho();
