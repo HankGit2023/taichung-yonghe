@@ -394,7 +394,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
           <button id="btn-reset" class="danger">清除進度</button>
         </div>
         <p class="note" style="margin-top:16px">地圖取材自台中市區與新北市永和區的真實地景——國家歌劇院、草悟道、審計新村、第二市場、宮原眼科，永安市場、四號公園、樂華夜市、福和橋。位置與比例為遊戲所需重新編排，不是地圖；高鐵台中站實際在烏日，遊戲裡放近了。</p>
-        <p class="note">音效：腳步、介面、麻將（籌碼）、車門、撞擊與短樂句來自 Kenney（kenney.nl）的 CC0 音效包；背景音樂取自 OpenGameArt 的 CC0 曲子：台中〈Happy Clappy Loop〉OwlishMedia、永和〈Happy Adventure〉TinyWorlds、台東〈Flowerbed Fields〉Zane Little Music；引擎聲為程式合成。</p>
+        <p class="note">音效：腳步、介面、麻將（籌碼）、撞擊與短樂句來自 Kenney（kenney.nl）的 CC0 音效包；汽車引擎、發動、熄火、車門取自 OpenGameArt 的 CC0〈Car Sound Effects Pack〉；背景音樂取自 OpenGameArt 的 CC0 曲子：台中〈Happy Clappy Loop〉OwlishMedia、永和〈Happy Adventure〉TinyWorlds、台東〈Flowerbed Fields〉Zane Little Music。</p>
       </div>
     </aside>
   </main>
@@ -557,7 +557,7 @@ var SND=(function(){
     });
   }
   // 音效檔（Kenney 的 CC0 音效包，轉成 m4a 放在 sounds/）。第一次開聲音才載入；沒載到的就退回合成音
-  var SAMPLE_LIST={"step_concrete": ["step_concrete_0.m4a", "step_concrete_1.m4a", "step_concrete_2.m4a", "step_concrete_3.m4a", "step_concrete_4.m4a"], "step_grass": ["step_grass_0.m4a", "step_grass_1.m4a", "step_grass_2.m4a", "step_grass_3.m4a", "step_grass_4.m4a"], "tile_lay": ["tile_lay_0.m4a", "tile_lay_1.m4a", "tile_lay_2.m4a"], "tile_hit": ["tile_hit_0.m4a", "tile_hit_1.m4a", "tile_hit_2.m4a", "tile_hit_3.m4a"], "tile_shuffle": ["tile_shuffle_0.m4a", "tile_shuffle_1.m4a", "tile_shuffle_2.m4a"], "tick": ["tick_0.m4a", "tick_1.m4a"], "talk": ["talk_0.m4a", "talk_1.m4a"], "pickup": ["pickup_0.m4a", "pickup_1.m4a"], "confirm": ["confirm_0.m4a"], "toggle": ["toggle_0.m4a", "toggle_1.m4a"], "open": ["open_0.m4a"], "close": ["close_0.m4a"], "bump": ["bump_0.m4a", "bump_1.m4a", "bump_2.m4a"], "arrive": ["arrive_0.m4a"], "win": ["win_0.m4a"], "lose": ["lose_0.m4a"], "cardoor_thud": ["cardoor_thud_0.m4a", "cardoor_thud_1.m4a"], "cardoor_latch": ["cardoor_latch_0.m4a", "cardoor_latch_1.m4a"], "bgm_tc": ["bgm_tc.m4a"], "bgm_yh": ["bgm_yh.m4a"], "bgm_td": ["bgm_td.m4a"]};
+  var SAMPLE_LIST={"step_concrete": ["step_concrete_0.m4a", "step_concrete_1.m4a", "step_concrete_2.m4a", "step_concrete_3.m4a", "step_concrete_4.m4a"], "step_grass": ["step_grass_0.m4a", "step_grass_1.m4a", "step_grass_2.m4a", "step_grass_3.m4a", "step_grass_4.m4a"], "tile_lay": ["tile_lay_0.m4a", "tile_lay_1.m4a", "tile_lay_2.m4a"], "tile_hit": ["tile_hit_0.m4a", "tile_hit_1.m4a", "tile_hit_2.m4a", "tile_hit_3.m4a"], "tile_shuffle": ["tile_shuffle_0.m4a", "tile_shuffle_1.m4a", "tile_shuffle_2.m4a"], "tick": ["tick_0.m4a", "tick_1.m4a"], "talk": ["talk_0.m4a", "talk_1.m4a"], "pickup": ["pickup_0.m4a", "pickup_1.m4a"], "confirm": ["confirm_0.m4a"], "toggle": ["toggle_0.m4a", "toggle_1.m4a"], "open": ["open_0.m4a"], "close": ["close_0.m4a"], "bump": ["bump_0.m4a", "bump_1.m4a", "bump_2.m4a"], "arrive": ["arrive_0.m4a"], "win": ["win_0.m4a"], "lose": ["lose_0.m4a"], "bgm_tc": ["bgm_tc.m4a"], "bgm_yh": ["bgm_yh.m4a"], "bgm_td": ["bgm_td.m4a"], "car_door_open": ["car_door_open.m4a"], "car_door_close": ["car_door_close.m4a"], "car_start": ["car_start.m4a"], "car_stop": ["car_stop.m4a"], "engine": ["car_engine_loop.wav"]};
   var SAMPLES={}, samplesLoading=false;
   function loadSamples(){
     if(samplesLoading||!ac)return; samplesLoading=true;
@@ -581,29 +581,40 @@ var SND=(function(){
     src.connect(g); g.connect(master); src.start(ac.currentTime+(delay||0));
     return true;
   }
-  // 引擎聲：鋸齒波＋方波經過低通，音高、音量跟著車速；加速時再高一點
+  // 引擎聲：優先用真實的汽車引擎循環（OpenGameArt CC0），車速越快播放速度越快、音量越大；
+  // 沒載到才用合成的（三角波＋正弦波，低沉一點，比較像轎車而不是重機）
   var eng=null;
   function engine(on,speed,boost){
     if(!on||!enabled||!ac){
       if(eng&&ac){ var t1=ac.currentTime, e=eng; eng=null;
-        e.g.gain.cancelScheduledValues(t1); e.g.gain.setTargetAtTime(0.0001,t1,0.08);
-        setTimeout(function(){ try{e.o1.stop();e.o2.stop();e.lfo.stop();}catch(x){} },500); }
+        e.g.gain.cancelScheduledValues(t1); e.g.gain.setTargetAtTime(0.0001,t1,0.1);
+        setTimeout(function(){ try{ if(e.src)e.src.stop(); if(e.o1){e.o1.stop();e.o2.stop();} }catch(x){} },600); }
       return;
     }
-    var t=ac.currentTime;
+    var t=ac.currentTime, v=Math.min(1,Math.abs(speed||0)/580), es=SAMPLES.engine;
+    if(es&&es.length&&eng&&!eng.src){ engine(false); }        // 原本在用合成音，錄音載到了就換掉
     if(!eng){
-      eng={o1:ac.createOscillator(),o2:ac.createOscillator(),f:ac.createBiquadFilter(),g:ac.createGain(),lfo:ac.createOscillator(),lg:ac.createGain()};
-      eng.o1.type='sawtooth'; eng.o2.type='square'; eng.f.type='lowpass'; eng.f.Q.value=3;
-      eng.g.gain.value=0.0001; eng.lfo.frequency.value=17; eng.lg.gain.value=0.012;     // 引擎的抖動
-      eng.o1.connect(eng.f); eng.o2.connect(eng.f); eng.f.connect(eng.g); eng.g.connect(master);
-      eng.lfo.connect(eng.lg); eng.lg.connect(eng.g.gain);
-      eng.o1.start(); eng.o2.start(); eng.lfo.start();
+      if(es&&es.length){
+        eng={src:ac.createBufferSource(),g:ac.createGain()};
+        eng.src.buffer=es[0]; eng.src.loop=true; eng.g.gain.value=0.0001;
+        eng.src.connect(eng.g); eng.g.connect(master); eng.src.start();
+      }else{
+        eng={o1:ac.createOscillator(),o2:ac.createOscillator(),f:ac.createBiquadFilter(),g:ac.createGain()};
+        eng.o1.type='triangle'; eng.o2.type='sine'; eng.f.type='lowpass'; eng.f.Q.value=0.7;
+        eng.g.gain.value=0.0001;
+        eng.o1.connect(eng.f); eng.o2.connect(eng.f); eng.f.connect(eng.g); eng.g.connect(master);
+        eng.o1.start(); eng.o2.start();
+      }
     }
-    var v=Math.min(1,Math.abs(speed||0)/580), fq=40+v*110+(boost?12:0);
-    eng.o1.frequency.setTargetAtTime(fq,t,0.08); eng.o2.frequency.setTargetAtTime(fq*0.502,t,0.08);
-    eng.f.frequency.setTargetAtTime(320+v*1100,t,0.1);
-    eng.g.gain.setTargetAtTime(0.03+v*0.045,t,0.12);
-    eng.lfo.frequency.setTargetAtTime(14+v*30,t,0.1);
+    if(eng.src){
+      eng.src.playbackRate.setTargetAtTime(0.72+v*0.85+(boost?0.12:0),t,0.12);   // 怠速低沉、越開越高
+      eng.g.gain.setTargetAtTime(0.16+v*0.2,t,0.15);
+    }else{
+      var fq=32+v*58+(boost?6:0);
+      eng.o1.frequency.setTargetAtTime(fq,t,0.12); eng.o2.frequency.setTargetAtTime(fq*2,t,0.12);
+      eng.f.frequency.setTargetAtTime(220+v*420,t,0.15);
+      eng.g.gain.setTargetAtTime(0.05+v*0.05,t,0.15);
+    }
   }
   function setWorld(w){                            // 換城市就換那個城市的背景音樂
     if(w===bgmWorld)return; bgmWorld=w;
@@ -2567,7 +2578,7 @@ function rideFrame(dt,time){
 }
 function finishRide(){
   RIDE.on=false; document.body.classList.remove('in-ride');
-  SND.sfx('arrive',0.55);                         // 抵達的小樂句
+  SND.sfx('arrive',0.18);                         // 抵達的小樂句（小聲一點）
   SND.setMode('field');
   var W=WORLDS[state.world];
   toast('抵達'+W.name);
@@ -3132,8 +3143,9 @@ function startDrive(car){
     for(var oi=0;oi<offs.length;oi++){ var ty2=(car.y+offs[oi])*TS-6; if(canDrive(state.px,ty2)&&canDrive(state.px+40,ty2)){ state.py=ty2; break; } }
   }
   keys={}; joyReset(); syncRunBtn();
-  SND.sfx('cardoor_thud',0.75); SND.sfx('cardoor_latch',0.4,0.04);   // 關車門：金屬悶響＋門鎖喀一聲
-  [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,0.25+i*0.09,'sawtooth',0.035);});   // 發動引擎
+  SND.sfx('car_door_open',0.6); SND.sfx('car_door_close',0.7,0.45);   // 開車門、坐進去、關門
+  if(!SND.sfx('car_start',0.6,0.8))                                     // 發動引擎（沒音檔才用合成的）
+    [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,0.8+i*0.09,'sawtooth',0.035);});
   var sang=NPCS.filter(function(n){return n.n==='桑董說車';})[0];
   if(sang&&!parked)say(sang,'喘…小心開…喘…',3.5);
   var riders=buddyParty().map(function(n){return n.n;});
@@ -3158,8 +3170,8 @@ function stopDrive(){
     state.px=(cx+sx*1.1)*TS; state.py=(cy+sy*1.1+0.4)*TS;
   }
   nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
-  SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03);   // 熄火
-  SND.sfx('cardoor_thud',0.75,0.35); SND.sfx('cardoor_latch',0.4,0.39);   // 下車關門
+  if(!SND.sfx('car_stop',0.55)){ SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03); }   // 熄火
+  SND.sfx('car_door_open',0.6,0.55); SND.sfx('car_door_close',0.7,1.0);   // 開門下車、關門
   SND.engine(false);
   placeParty();                                   // 同伴一起下車，排在你身後
   if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }

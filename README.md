@@ -11,4 +11,4 @@
 
 ## 音效
 
-`sounds/` 裡的音效來自 [Kenney](https://kenney.nl/assets) 的 CC0 音效包（Interface Sounds、Impact Sounds、RPG Audio、Casino Audio、Music Jingles），轉成 m4a（單聲道 64kbps）方便 iPhone 播放。背景音樂取自 OpenGameArt 的 CC0 曲子：台中〈Happy Clappy Loop〉（OwlishMedia）、永和〈Happy Adventure〉（TinyWorlds）、台東〈Flowerbed Fields〉（Zane Little Music）。引擎聲為 Web Audio 程式合成。
+`sounds/` 裡的音效來自 [Kenney](https://kenney.nl/assets) 的 CC0 音效包（Interface Sounds、Impact Sounds、RPG Audio、Casino Audio、Music Jingles），轉成 m4a（單聲道 64kbps）方便 iPhone 播放。背景音樂取自 OpenGameArt 的 CC0 曲子：台中〈Happy Clappy Loop〉（OwlishMedia）、永和〈Happy Adventure〉（TinyWorlds）、台東〈Flowerbed Fields〉（Zane Little Music）。汽車引擎、發動、熄火、車門取自 OpenGameArt 的 CC0〈Car Sound Effects Pack〉（引擎循環存成 wav，循環時才不會有空隙）。
