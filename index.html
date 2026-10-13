@@ -372,7 +372,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
         <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。一起出遊時換成隊伍裡的人，就是<b>換隊長</b>：大家原地繼續一起走；換成隊伍外的人，同伴就留在原地。</p>
-        <p class="note">當 <b>Hank</b> 時，走到桑董車行的二手車旁邊按 <b>E</b> 可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）結束，車會開回車行。</p>
+        <p class="note">任何角色走到桑董車行的二手車旁邊按 <b>E</b> 都可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）結束，車會開回車行。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
@@ -1705,7 +1705,7 @@ function findNearest(){
     // 正在等你回答的人鎖成最高優先，免得「走」按到旁邊的人身上
     cand(n.ask>0?-1:(n.inParty?5:2), n.ask>0?5:(n.inParty?1.3:3.2), 'npc', n, n.x, n.y);}
   for(i=0;i<GATES.length;i++){var G=GATES[i]; cand(3,3.2,'gate',G,G.x,G.y);}
-  if(state.char==='hank'&&!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if(CP.t==='car'&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // Hank 可以試駕
+  if(!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if(CP.t==='car'&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // 每個人都可以試駕
   for(i=0;i<POIS.length;i++){var P=POIS[i];
     cand(4,8,'poi',P,P.x+0.5,P.y+0.5);}
   return best;
@@ -2846,8 +2846,8 @@ cv.parentElement.addEventListener('pointerdown',function(e){
   mjTap((e.clientX-r.left)*cv.vw/r.width,(e.clientY-r.top)*cv.vh/r.height);
 });
 
-/* ============ 試駕（Hank 限定） ============
-   當 Hank 時，走到桑董車行的二手車旁按 E →「試駕這台車」：你坐進車裡，用搖桿／方向鍵開車。
+/* ============ 試駕 ============
+   任何角色走到桑董車行的二手車旁按 E →「試駕這台車」：你坐進車裡，用搖桿／方向鍵開車。
    車頭會慢慢轉向你推的方向，有加速、煞車，只能開在馬路、人行道、廣場和橋上，撞到東西會彈回來。
    再按 E（手機按「下車」）就結束，車由桑董開回車行原位。 */
 var DRIVE={on:false,ang:0,speed:0};
