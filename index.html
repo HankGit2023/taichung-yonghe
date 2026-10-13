@@ -608,12 +608,12 @@ var SND=(function(){
     }
     if(eng.src){
       eng.src.playbackRate.setTargetAtTime(0.72+v*0.85+(boost?0.12:0),t,0.12);   // 怠速低沉、越開越高
-      eng.g.gain.setTargetAtTime(0.16+v*0.2,t,0.15);
+      eng.g.gain.setTargetAtTime(0.06+v*0.08,t,0.15);                      // 引擎聲壓低，不要蓋過音樂
     }else{
       var fq=32+v*58+(boost?6:0);
       eng.o1.frequency.setTargetAtTime(fq,t,0.12); eng.o2.frequency.setTargetAtTime(fq*2,t,0.12);
       eng.f.frequency.setTargetAtTime(220+v*420,t,0.15);
-      eng.g.gain.setTargetAtTime(0.05+v*0.05,t,0.15);
+      eng.g.gain.setTargetAtTime(0.025+v*0.025,t,0.15);
     }
   }
   function setWorld(w){                            // 換城市就換那個城市的背景音樂
@@ -3143,8 +3143,8 @@ function startDrive(car){
     for(var oi=0;oi<offs.length;oi++){ var ty2=(car.y+offs[oi])*TS-6; if(canDrive(state.px,ty2)&&canDrive(state.px+40,ty2)){ state.py=ty2; break; } }
   }
   keys={}; joyReset(); syncRunBtn();
-  SND.sfx('car_door_open',0.6); SND.sfx('car_door_close',0.7,0.45);   // 開車門、坐進去、關門
-  if(!SND.sfx('car_start',0.6,0.8))                                     // 發動引擎（沒音檔才用合成的）
+  SND.sfx('car_door_open',0.25); SND.sfx('car_door_close',0.3,0.45);   // 開車門、坐進去、關門（音量調小）
+  if(!SND.sfx('car_start',0.25,0.8))                                     // 發動引擎（沒音檔才用合成的）
     [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,0.8+i*0.09,'sawtooth',0.035);});
   var sang=NPCS.filter(function(n){return n.n==='桑董說車';})[0];
   if(sang&&!parked)say(sang,'喘…小心開…喘…',3.5);
@@ -3170,8 +3170,8 @@ function stopDrive(){
     state.px=(cx+sx*1.1)*TS; state.py=(cy+sy*1.1+0.4)*TS;
   }
   nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
-  if(!SND.sfx('car_stop',0.55)){ SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03); }   // 熄火
-  SND.sfx('car_door_open',0.6,0.55); SND.sfx('car_door_close',0.7,1.0);   // 開門下車、關門
+  if(!SND.sfx('car_stop',0.25)){ SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03); }   // 熄火
+  SND.sfx('car_door_open',0.25,0.55); SND.sfx('car_door_close',0.3,1.0);   // 開門下車、關門
   SND.engine(false);
   placeParty();                                   // 同伴一起下車，排在你身後
   if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
