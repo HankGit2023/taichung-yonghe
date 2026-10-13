@@ -371,6 +371,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">台中、永和、台東是三張地圖。台中的<b>高鐵台中站</b>前按 <b>E</b> 搭高鐵到板橋、再轉捷運到永和；台中的<b>台中車站</b>（紅磚老站房旁）前按 <b>E</b> 搭台鐵普悠瑪號經南迴線到台東。永和的捷運永安市場站、台東的台東車站都可以搭回台中。坐車途中點一下可以直接跳到抵達。</p>
         <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
+        <p class="note">當 <b>Hank</b> 時，走到桑董車行的二手車旁邊按 <b>E</b> 可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）結束，車會開回車行。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
@@ -649,7 +650,7 @@ function buildTC(){
   B(3,51,17,4,'hsr','高鐵台中站');                 // 又寬又矮的站房，上面是高架月台
   block(63,13,82,24,'shop'); block(2,2,20,24,'house');
   // 桑董的二手車行（文心路西側）：展示場、辦公室、一排排待售的車、門口一張麻將桌
-  fillT(2,34,20,10,PLAZA);
+  fillT(2,34,22,10,PLAZA);                       // 展示場一路鋪到文心路，試駕的車才開得出去
   B(3,34,6,3,'shop','桑董車行');
   for(var cr=0;cr<2;cr++)for(var cc=0;cc<4;cc++){
     var cxp=11+cc*2.6, cyp=35.6+cr*2.4;
@@ -1225,7 +1226,7 @@ function drawProp(p,ox,oy,time){
     if(night()>0.25){ctx.fillStyle='rgba(255,226,140,.5)';ctx.fillRect(x-6,y-33,12,22);}
     return;
   }
-  if(p.t==='car'){                                 // 待售的二手車
+  if(p.t==='car'){ if(p.hidden)return;            // 待售的二手車（試駕中就不畫）
     var cc=['#d8d8d4','#2b2d33','#b8322f','#3a6ea8','#e6c84a','#5c8a5a'][p.v||0];
     ctx.fillStyle='rgba(28,34,28,.2)'; ctx.fillRect(x-15,y-1,32,5);
     ctx.fillStyle=cc; rrect(ctx,x-15,y-12,30,9,3); ctx.fill(); rrect(ctx,x-9,y-19,18,8,3); ctx.fill();
@@ -1618,7 +1619,8 @@ function render(dt,time){
     else if(L.k==='i')drawItem(L.o,ox,oy,time);
     else{
       var bob = state.moving&&!reduce ? Math.sin(state.anim*11)*2 : 0;
-      drawPerson(state.px-ox,state.py-oy,PL.c,PL.c2,state.dir,bob,PL.label||null,PL.hs);
+      if(DRIVE.on) drawDriveCar(state.px-ox,state.py-oy,time);
+      else drawPerson(state.px-ox,state.py-oy,PL.c,PL.c2,state.dir,bob,PL.label||null,PL.hs);
     }
   }
 
@@ -1680,6 +1682,7 @@ function findNearest(){
     // 正在等你回答的人鎖成最高優先，免得「走」按到旁邊的人身上
     cand(n.ask>0?-1:(n.inParty?5:2), n.ask>0?5:(n.inParty?1.3:3.2), 'npc', n, n.x, n.y);}
   for(i=0;i<GATES.length;i++){var G=GATES[i]; cand(3,3.2,'gate',G,G.x,G.y);}
+  if(state.char==='hank'&&!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if(CP.t==='car'&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // Hank 可以試駕
   for(i=0;i<POIS.length;i++){var P=POIS[i];
     cand(4,8,'poi',P,P.x+0.5,P.y+0.5);}
   return best;
@@ -1735,7 +1738,9 @@ function renderDex(){
   document.getElementById('dex-bar').style.width=(n/DEX_ALL.length*100)+'%';
 }
 function interact(){
+  if(DRIVE.on){ stopDrive(); return; }
   var t=findNearest(); if(!t)return;
+  if(t.k==='car'){ startDrive(t.o); return; }
   if(t.k==='item'){
     state.found[t.o.n]=1;
     toast('撿到了：'+t.o.n);
@@ -2818,6 +2823,91 @@ cv.parentElement.addEventListener('pointerdown',function(e){
   mjTap((e.clientX-r.left)*cv.vw/r.width,(e.clientY-r.top)*cv.vh/r.height);
 });
 
+/* ============ 試駕（Hank 限定） ============
+   當 Hank 時，走到桑董車行的二手車旁按 E →「試駕這台車」：你坐進車裡，用搖桿／方向鍵開車。
+   車頭會慢慢轉向你推的方向，有加速、煞車，只能開在馬路、人行道、廣場和橋上，撞到東西會彈回來。
+   再按 E（手機按「下車」）就結束，車由桑董開回車行原位。 */
+var DRIVE={on:false,ang:0,speed:0};
+var DRIVABLE={}; DRIVABLE[ROAD]=1; DRIVABLE[PAVE]=1; DRIVABLE[PLAZA]=1; DRIVABLE[DECK]=1;
+var CAR_COLORS=['#d8d8d4','#2b2d33','#b8322f','#3a6ea8','#e6c84a','#5c8a5a'];
+function canDrive(px,py){
+  var r=9, pts=[[-r,-r],[r,-r],[-r,r],[r,r],[0,0]];
+  for(var i=0;i<pts.length;i++){
+    var tx=((px+pts[i][0])/TS)|0, ty=((py+pts[i][1])/TS)|0;
+    if(tx<0||ty<0||tx>=MW||ty>=MH)return false;
+    if(!DRIVABLE[terrain[idx(tx,ty)]]||mask[idx(tx,ty)])return false;
+  }
+  return true;
+}
+function startDrive(car){
+  DRIVE={on:true, car:car, ang:0, speed:0, col:CAR_COLORS[car.v||0], dist:0};
+  car.hidden=1; mask[idx(Math.floor(car.x),Math.floor(car.y))]=0;
+  // 先把車挪到兩排車中間的走道（車頭朝右、朝文心路），不然一開就撞到隔壁那台
+  state.px=car.x*TS; state.py=car.y*TS-6;
+  var offs=[1.2,-1.2,2.4,-2.4,0];
+  for(var oi=0;oi<offs.length;oi++){ var ty2=(car.y+offs[oi])*TS-6; if(canDrive(state.px,ty2)&&canDrive(state.px+40,ty2)){ state.py=ty2; break; } }
+  keys={}; joyReset();
+  [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,i*0.09,'sawtooth',0.035);});   // 發動引擎
+  var sang=NPCS.filter(function(n){return n.n==='桑董說車';})[0];
+  if(sang)say(sang,'喘…小心開…喘…',3.5);
+  toast('試駕開始！按 E 或「下車」結束');
+  showCard('試駕','桑董車行的二手車','用搖桿或方向鍵開車','只能開在馬路、人行道和廣場上。撞到東西會彈回來，開回來時桑董會在門口喘著等你。');
+  switchTab('now');
+}
+function stopDrive(){
+  var c=DRIVE.car, d=Math.round(DRIVE.dist/TS);
+  c.hidden=0; mask[idx(Math.floor(c.x),Math.floor(c.y))]=1;
+  DRIVE.on=false;
+  nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
+  SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03);   // 熄火
+  toast('試駕結束，桑董把車開回車行了');
+  showCard('試駕','桑董車行的二手車','開了大約 '+d+' 格','下車的時候引擎還熱熱的。桑董喘著跑過來，把車開回車行原本的位置。');
+  addLog('在桑董車行試駕了一台車，開了大約 '+d+' 格（'+clockStr()+'）');
+  save();
+}
+function driveStep(dt,dx,dy,push){
+  if(push>0.02){
+    var ta=Math.atan2(dy,dx), da=((ta-DRIVE.ang)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;
+    DRIVE.ang+=Math.sign(da)*Math.min(Math.abs(da),4.2*dt);                         // 方向盤慢慢轉過去
+    var turnSlow=Math.abs(da)>1.6?0.4:1;                                            // 大迴轉時先慢下來
+    DRIVE.speed=Math.min(340*turnSlow,DRIVE.speed+420*dt);
+  }else{
+    DRIVE.speed = DRIVE.speed>0 ? Math.max(0,DRIVE.speed-520*dt) : Math.min(0,DRIVE.speed+520*dt);
+  }
+  var vx=Math.cos(DRIVE.ang)*DRIVE.speed*dt, vy=Math.sin(DRIVE.ang)*DRIVE.speed*dt;
+  var nx=state.px+vx, ny=state.py+vy;
+  if(canDrive(nx,ny)){ state.px=nx; state.py=ny; DRIVE.dist+=Math.hypot(vx,vy); }
+  else if(canDrive(nx,state.py)){ state.px=nx; DRIVE.speed*=0.7; DRIVE.dist+=Math.abs(vx); }
+  else if(canDrive(state.px,ny)){ state.py=ny; DRIVE.speed*=0.7; DRIVE.dist+=Math.abs(vy); }
+  else{ if(Math.abs(DRIVE.speed)>120)SND.clack(0,true); DRIVE.speed=-DRIVE.speed*0.25; }   // 撞到了，彈回來
+  var a=DRIVE.ang;
+  state.dir=Math.abs(Math.cos(a))>Math.abs(Math.sin(a))?(Math.cos(a)>0?'right':'left'):(Math.sin(a)>0?'down':'up');
+}
+function drawDriveCar(x,y,time){
+  var n=night();
+  ctx.save(); ctx.translate(x,y-4); ctx.rotate(DRIVE.ang);
+  if(n>0.25){                                       // 晚上車頭燈照出去
+    var lg=ctx.createRadialGradient(16,0,2,40,0,46);
+    lg.addColorStop(0,'rgba(255,236,170,'+(0.55*n)+')'); lg.addColorStop(1,'rgba(255,236,170,0)');
+    ctx.fillStyle=lg; ctx.beginPath(); ctx.moveTo(14,-5); ctx.lineTo(70,-24); ctx.lineTo(70,24); ctx.lineTo(14,5); ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle='rgba(20,24,20,.28)'; rrect(ctx,-15,-8,32,19,6); ctx.fill();          // 影子
+  ctx.fillStyle='#1b1b1f'; [[-11,-9.5],[7,-9.5],[-11,6.5],[7,6.5]].forEach(function(w){ rrect(ctx,w[0],w[1],6,3,1); ctx.fill(); });   // 輪胎
+  ctx.fillStyle=DRIVE.col; rrect(ctx,-16,-8,32,16,5); ctx.fill();                      // 車身（俯視）
+  ctx.fillStyle='rgba(255,255,255,.18)'; rrect(ctx,-14,-6.5,28,4,2); ctx.fill();      // 反光
+  ctx.fillStyle='#24313d'; rrect(ctx,2,-6,7,12,2); ctx.fill();                        // 前擋風玻璃
+  ctx.fillStyle='#2e3b47'; rrect(ctx,-11,-5.5,5,11,2); ctx.fill();                    // 後擋風玻璃
+  ctx.fillStyle=DRIVE.col; ctx.globalAlpha=0.85; rrect(ctx,-6,-6,8,12,2); ctx.fill(); ctx.globalAlpha=1;   // 車頂
+  ctx.fillStyle='#ffe9a8'; ctx.fillRect(14.5,-6.5,2,3); ctx.fillRect(14.5,3.5,2,3);    // 頭燈
+  ctx.fillStyle='#d23c32'; ctx.fillRect(-16.5,-6.5,2,3); ctx.fillRect(-16.5,3.5,2,3);  // 尾燈
+  ctx.restore();
+  // 頭上掛名牌，知道車裡是誰
+  ctx.font='500 10.5px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+  var lb=(PL.label||'你')+' 試駕中', tw=ctx.measureText(lb).width;
+  ctx.fillStyle='rgba(24,30,26,.72)'; rrect(ctx,x-tw/2-6,y-38,tw+12,16,8); ctx.fill();
+  ctx.fillStyle='#f2f6f0'; ctx.fillText(lb,x,y-27); ctx.textAlign='left';
+}
+
 /* ============ 小地圖 ============ */
 var mmc=document.getElementById('minimap'), mmx=mmc.getContext('2d');
 var mmBase=document.createElement('canvas'); mmBase.width=MW*3; mmBase.height=MH*3;
@@ -3204,11 +3294,12 @@ function step(dt){
     dx=joy.nx; dy=joy.ny;
     push=Math.min(1,(joy.mag-JOY_DEAD)/(0.9-JOY_DEAD));
   }
-  state.moving = push>0.02?1:0;
+  if(DRIVE.on) driveStep(dt,dx,dy,push);          // 試駕中：用開車的方式移動
+  state.moving = DRIVE.on?(Math.abs(DRIVE.speed)>15?1:0):(push>0.02?1:0);
   // 走路／跑步由玩家自己切換（R 鍵或手機的「走／跑」鈕），按住 Shift 暫時跑；不再推久了自動加速
   var ramp = (state.run||keys['shift']) ? 1 : 0;
   state.sprint=ramp;
-  if(state.moving){
+  if(state.moving&&!DRIVE.on){
     if(Math.abs(dx)>Math.abs(dy))state.dir=dx>0?'right':'left';
     else state.dir=dy>0?'down':'up';
     var sp=(ramp?270:146)*dt;                    // 速度固定，搖桿推多深都一樣快
@@ -3328,16 +3419,19 @@ function loop(t){
   step(dt);
   render(dt,t/1000);
 
-  nearest=findNearest();
-  if(nearest){
-    var label = nearest.k==='gate'?nearest.o.label
+  nearest=DRIVE.on?null:findNearest();
+  if(DRIVE.on){ hintEl.innerHTML='<kbd>E</kbd>下車，結束試駕'; hintEl.classList.add('on'); setAbtn('下車',true); }
+  else if(nearest){
+    var label = nearest.k==='car'?'試駕這台車'
+      : nearest.k==='gate'?nearest.o.label
       : nearest.k==='item'?'撿起發亮的東西'
       : nearest.k==='npc'? npcLabel(nearest.o)[0]
       : ('看看'+nearest.o.t);
     hintEl.innerHTML='<kbd>E</kbd>'+label;
     hintEl.classList.add('on');
     // 行動按鈕用短版動詞，塞得進 68px 圓鈕
-    var shortLabel = nearest.k==='gate'?nearest.o.short
+    var shortLabel = nearest.k==='car'?'試駕'
+      : nearest.k==='gate'?nearest.o.short
       : nearest.k==='item'?'撿'
       : nearest.k==='npc'? npcLabel(nearest.o)[1]
       : '查看';
