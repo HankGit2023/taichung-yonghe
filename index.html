@@ -371,7 +371,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">台中、永和、台東是三張地圖。台中的<b>高鐵台中站</b>前按 <b>E</b> 搭高鐵到板橋、再轉捷運到永和；台中的<b>台中車站</b>（紅磚老站房旁）前按 <b>E</b> 搭台鐵普悠瑪號經南迴線到台東。永和的捷運永安市場站、台東的台東車站都可以搭回台中。坐車途中點一下可以直接跳到抵達。</p>
         <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
-        <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。</p>
+        <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。一起出遊時換成隊伍裡的人，就是<b>換隊長</b>：大家原地繼續一起走；換成隊伍外的人，同伴就留在原地。</p>
         <p class="note">當 <b>Hank</b> 時，走到桑董車行的二手車旁邊按 <b>E</b> 可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車，再按 E（手機按「下車」）結束，車會開回車行。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
@@ -3193,7 +3193,9 @@ function buildWho(){
     ctx=saved;
     var tx=document.createElement('div');
     tx.innerHTML='<div class="nm"></div><div class="wh"></div><div class="ds"></div>';
-    tx.querySelector('.nm').textContent=ch.name; tx.querySelector('.wh').textContent=ch.where; tx.querySelector('.ds').textContent=ch.desc;
+    var cn=charNpc(ch), inP=cn&&cn.inParty;
+    tx.querySelector('.nm').textContent=ch.name+(inP?'（同行中）':''); tx.querySelector('.wh').textContent=ch.where;
+    tx.querySelector('.ds').textContent=inP?'選他就換他帶隊，大家繼續一起走。':ch.desc;
     b.appendChild(pc); b.appendChild(tx);
     b.addEventListener('click',function(){ pickChar(ch.id); });
     g.appendChild(b);
@@ -3210,14 +3212,34 @@ function closeWho(){
 }
 function pickChar(id){
   var ch=charById(id);
+  if(ch.id===state.char){ closeWho(); return; }
   if(DRIVE.on) stopDrive();
   recordPos();                                    // 現在這個人留在原地
+  var oldNpc=charNpc(charById(state.char)), newNpc=charNpc(ch);
+  var here={w:state.world,x:+(state.px/TS).toFixed(2),y:+(state.py/TS).toFixed(2)};
+  var swap=!!(newNpc&&newNpc.inParty);
+  if(swap){
+    // 換隊長：選的是隊伍裡的人 → 由他接手帶隊，原本的隊長變成隊員，大家都在原地繼續一起走
+    newNpc.inParty=0; newNpc.ask=0;
+    state.party=state.party.filter(function(q){return q!==newNpc.n;});
+    if(oldNpc&&oldNpc.buddy){ oldNpc.inParty=1; oldNpc.ask=0; oldNpc.curWorld=state.world;
+      if(state.party.indexOf(oldNpc.n)<0)state.party.unshift(oldNpc.n); }
+    state.pos[ch.id]=here;                         // 新隊長站在原本隊長的位置
+  }else{
+    // 選的人不在隊伍裡 → 隊伍就地解散，同伴留在現在的位置，不會跑回原本的地方
+    buddyParty().forEach(function(n){
+      n.inParty=0; n.ask=0; n.curWorld=state.world;
+      n.ox=n.hx=n.tx=n.x; n.oy=n.hy=n.ty=n.y;
+      for(var ci=0;ci<CHARS.length;ci++) if(CHARS[ci].npc===n.n) state.pos[CHARS[ci].id]={w:state.world,x:+n.x.toFixed(2),y:+n.y.toFixed(2)};
+    });
+    state.party=[];
+  }
   state.char=ch.id;
-  allNpcs().forEach(function(n){n.inParty=0;n.ask=0;}); state.party=[];   // 換人就解散隊伍
   applyCharPositions();
   var cp=state.pos[ch.id];
-  loadWorld(cp?cp.w:(charNpc(ch)?charNpc(ch).curWorld:ch.world),null); placeAtHome();
+  loadWorld(cp?cp.w:(newNpc?newNpc.curWorld:ch.world),null); placeAtHome();
   closeWho(); save(); updateHUD(); drawMini();
+  if(swap){ toast('換 '+ch.name+' 帶隊'); showCard('換隊長',ch.name,'現在由 '+ch.name+' 帶隊','隊伍裡的人都還在，原本的隊長改跟在後面。'); addLog('改由'+ch.name+'帶隊（'+clockStr()+'）'); switchTab('now'); return; }
   toast('你現在是 '+ch.name);
   showCard('角色',ch.name,ch.where,ch.desc);
   addLog('換成用'+ch.name+'的視角走走（'+clockStr()+'）');
