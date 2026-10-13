@@ -408,6 +408,9 @@ var SND=(function(){
   var BTL_BASS=[110,0,220,110, 110,0,220,110, 98,0,196,98, 123.47,0,246.94,123.47,
                 87.31,0,174.61,87.31, 87.31,0,174.61,87.31, 82.41,0,164.81,82.41, 82.41,164.81,82.41,164.81];
   var BTL_STEP_MS=125;   // ~120 BPM 的十六分音
+  // 麻將：慢板五聲音階（宮商角徵羽），三角波撥弦感
+  var MJ_MEL=[523.25,587.33,659.25,783.99, 880,0,783.99,659.25, 587.33,659.25,0,523.25, 440,0,523.25,0];
+  var MJ_STEP_MS=240;
   var mode='field';      // field 散步曲｜battle 戰鬥曲｜none 安靜（播勝負小段時）
   function ensureCtx(){
     if(ac)return ac;
@@ -434,6 +437,12 @@ var SND=(function(){
   function tickBGM(){
     if(!enabled||!ac)return;
     var now=ac.currentTime;
+    if(mode==='mj'){
+      var mi=bgmStep%MJ_MEL.length;
+      if(MJ_MEL[mi])playNote(MJ_MEL[mi],0.42,now,0.04,'triangle');
+      if(mi%4===0)playNote(mi<8?130.81:110,0.9,now,0.035,'sine');
+      bgmStep++; return;
+    }
     if(mode==='battle'){
       var i=bgmStep%BTL_MEL.length;
       if(BTL_MEL[i])playNote(BTL_MEL[i],0.12,now,0.032,'square');
@@ -454,7 +463,7 @@ var SND=(function(){
     bgmGain.gain.cancelScheduledValues(ac.currentTime);
     bgmGain.gain.setValueAtTime(bgmGain.gain.value,ac.currentTime);
     bgmGain.gain.linearRampToValueAtTime(0.9,ac.currentTime+0.6); // 柔和淡入
-    bgmTimer=setInterval(tickBGM,mode==='battle'?BTL_STEP_MS:STEP_MS);
+    bgmTimer=setInterval(tickBGM,mode==='battle'?BTL_STEP_MS:mode==='mj'?MJ_STEP_MS:STEP_MS);
   }
   function stopBGM(fade){
     if(!bgmTimer)return;
@@ -545,6 +554,19 @@ var SND=(function(){
     setEnabled:setEnabled,
     punch:punch,
     blip:blip,
+    clack:function(delay,hi){                    // 麻將牌碰桌面的「喀」：短促的雜訊＋一點低頻
+      if(!enabled||!ac)return;
+      var t0=ac.currentTime+(delay||0), sr=ac.sampleRate, len=Math.floor(sr*0.035);
+      var buf=ac.createBuffer(1,len,sr), d=buf.getChannelData(0);
+      for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+      var n=ac.createBufferSource(); n.buffer=buf;
+      var f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=hi?3400:2300; f.Q.value=2.2;
+      var g=ac.createGain(); g.gain.setValueAtTime(hi?0.5:0.32,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.06);
+      n.connect(f); f.connect(g); g.connect(master); n.start(t0); n.stop(t0+0.07);
+      var o=ac.createOscillator(), og=ac.createGain(); o.type='triangle'; o.frequency.setValueAtTime(hi?520:380,t0); o.frequency.exponentialRampToValueAtTime(160,t0+0.05);
+      og.gain.setValueAtTime(0.08,t0); og.gain.exponentialRampToValueAtTime(0.001,t0+0.06);
+      o.connect(og); og.connect(master); o.start(t0); o.stop(t0+0.07);
+    },
     setMode:setMode,
     jingle:jingle
   };
@@ -897,7 +919,8 @@ function placeAtHome(){                         // 在自己的城市就站到�
   if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
   placeParty();
 }
-TC.npcs.concat(YH.npcs,TD.npcs).forEach(function(n){n.x+=0.5;n.y+=0.5;n.ox=n.x;n.oy=n.y;n.li=0;n.wait=Math.random()*3;});
+TC.npcs.concat(YH.npcs,TD.npcs).forEach(function(n){n.x+=0.5;n.y+=0.5;n.ox=n.x;n.oy=n.y;n.li=0;n.wait=Math.random()*3;
+  if(n.pet) n.dog={x:n.x+0.9,y:n.y+0.2,dir:-1,side:1,walk:0,moving:0,sayT:0,sit:0,name:n.petName||''};});
 
 // arrive：從別的城市坐車過來就站在出口，否則（新開遊戲）站在出生點
 function loadWorld(id,from){
@@ -2581,14 +2604,22 @@ function startMahjong(){
   keys={}; joyReset(); measureSafe();
   MJ={on:true, phase:'intro', t:0, deck:deck, hand:hand, draw:null, sel:0, pool:[], round:1,
       endRound:3+Math.floor(Math.random()*3), aiIdx:0, aiT:0, hits:[], result:null, outT:0,
-      seats:[ {name:meName, look:PL, me:1},
+      seats:[ {name:meName, look:PL, me:1, pet:!!PL.pet},
               {name:sang.n, look:{c:sang.c,c2:sang.c2,hs:sang.hs}, pos:'left'},
-              {name:mate.n, look:{c:mate.c,c2:mate.c2,hs:mate.hs}, pos:'top'},
+              {name:mate.n, look:{c:mate.c,c2:mate.c2,hs:mate.hs}, pos:'top', pet:!!mate.pet},
               {name:sui.n,  look:{c:sui.c,c2:sui.c2,hs:sui.hs}, pos:'right'} ],
       watch:watch.map(function(n){return n.n;})};
   MJ.seats.forEach(function(p){p.sayT=0;p.say='';});
   document.body.classList.add('in-mj');
-  [523,659,784].forEach(function(f,i){SND.blip(f,0.1,i*0.09,'square',0.04);});
+  SND.setMode('mj');                              // 換成麻將的背景樂
+  for(var ci=0;ci<12;ci++) SND.clack(ci*0.07+Math.random()*0.03, ci%3===0);   // 洗牌、砌牌的喀喀聲
+}
+function mjQuit(){                               // 中離：牌局中途站起來走人
+  if(!MJ.on||MJ.phase==='end'||MJ.phase==='out')return;
+  MJ.result=null; MJ.quit=true;
+  mjSay(1,'喘…欸！還沒打完');
+  SND.clack(0,true);
+  MJ.phase='out'; MJ.outT=0;
 }
 function mjDrawTile(){ if(!MJ.deck.length)MJ.deck=mjDeck(); MJ.draw=MJ.deck.pop(); MJ.sel=MJ.hand.length; }
 function mjSay(i,txt){ MJ.seats[i].say=txt; MJ.seats[i].sayT=2.2; }
@@ -2598,7 +2629,7 @@ function mjDiscard(i){                           // 你打出第 i 張（13 是�
   var t=all.splice(i,1)[0];
   MJ.hand=all; mjSort(MJ.hand); MJ.draw=null;
   MJ.pool.push({t:t,who:0});
-  SND.blip(880,0.05,0,'square',0.04);
+  SND.clack(0,true);
   MJ.phase='ai'; MJ.aiIdx=1; MJ.aiT=0;
 }
 function mjFinish(){
@@ -2620,7 +2651,7 @@ function mjFrame(dt,time){
       var p=MJ.seats[MJ.aiIdx];
       if(!MJ.deck.length)MJ.deck=mjDeck();
       MJ.pool.push({t:MJ.deck.pop(),who:MJ.aiIdx});
-      SND.blip(700+MJ.aiIdx*60,0.05,0,'square',0.035);
+      SND.clack(0,false);
       var talk=MJ_TALK[p.name]; if(talk&&Math.random()<0.45) mjSay(MJ.aiIdx,talk[Math.floor(Math.random()*talk.length)]);
       MJ.aiIdx++;
       if(MJ.aiIdx>3){
@@ -2640,6 +2671,13 @@ function mjFrame(dt,time){
 }
 function mjLeave(){
   document.body.classList.remove('in-mj');
+  SND.setMode('field');                           // 回地圖換回平常的音樂
+  if(!MJ.result){                                 // 中離
+    toast('你中途離席了');
+    showCard('麻將','桑董車行・東風局','中途離席 · 第 '+MJ.round+' 巡','打到一半就站起來走了。桑董喘著說，下次要把這把補回來。');
+    addLog('在桑董車行打麻將打到一半就中離了（'+clockStr()+'）');
+    switchTab('now'); save(); return;
+  }
   var r=MJ.result, wn=MJ.seats[r.w].name;
   toast(r.w===0?'你胡了！'+r.how+' '+r.tai+' 台':wn+' 胡了');
   showCard('麻將','桑董車行・東風局',(r.w===0?'你':wn)+' '+r.how+' · '+r.tai+' 台',
@@ -2679,7 +2717,7 @@ function mjDraw(time){
   // 桌子上方留位置給對家的人（頭和名牌），不要壓到標題
   var land=W>H*1.15;                                            // 橫向：對家坐進桌子裡，桌子才放得大
   var sc0=land?1.15:Math.max(1.3,Math.min(2,W/230)), topRoom=land?0:52*sc0;
-  var S=Math.min(W*0.9,handY-st-56-topRoom-24), cx=W/2, cy=st+56+topRoom+S/2;
+  var S=Math.min(W*0.72,340,handY-st-56-topRoom-24), cx=W/2, cy=st+56+topRoom+S/2;   // 桌子小一點
   ctx.fillStyle='#5a3a24'; rrect(ctx,cx-S/2-8,cy-S/2-8,S+16,S+16,14); ctx.fill();
   ctx.fillStyle='#2f7a50'; rrect(ctx,cx-S/2,cy-S/2,S,S,10); ctx.fill();
   ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1; rrect(ctx,cx-S/2+10,cy-S/2+10,S-20,S-20,8); ctx.stroke();
@@ -2713,6 +2751,10 @@ function mjDraw(time){
     ctx.fillStyle='rgba(12,20,16,.78)'; rrect(ctx,nx-nw/2-6,ny-13,nw+12,16,8); ctx.fill();
     ctx.fillStyle='#f2f6f0'; ctx.fillText(p.name,nx,ny-1); ctx.textAlign='left';
     if(p.sayT>0) drawBubble(nx,ny-14,p.say,false);
+    if(p.pet){                                    // 泡芙花花上桌，泡芙就坐在她旁邊
+      var dx2=p.pos==='left'?-24*sc:p.pos==='right'?24*sc:30*sc;
+      mjDog(q[0]+dx2,q[1]+2,sc*0.85,p.pos==='right'?1:-1,time);
+    }
   });
   // 我的手牌
   var all=MJ.hand.concat(MJ.draw?[MJ.draw]:[]);
@@ -2720,6 +2762,14 @@ function mjDraw(time){
   ctx.fillStyle='#f3ead0'; ctx.font='700 12px "Noto Sans TC",sans-serif';
   ctx.fillText('你（'+MJ.seats[0].name+'）',x0,handY-10);
   if(MJ.seats[0].sayT>0) drawBubble(W/2,handY-16,MJ.seats[0].say,false);
+  if(MJ.seats[0].pet) mjDog(x0+tw*0.6,handY-24,1.3,1,time);     // 你是泡芙花花：泡芙坐在你的手牌旁邊
+  // 中離按鈕（左上角）
+  if(MJ.phase==='mine'||MJ.phase==='ai'||MJ.phase==='intro'){
+    var qx=12, qy=st+10, qw=58, qh=28;
+    ctx.fillStyle='rgba(192,57,43,.88)'; rrect(ctx,qx,qy,qw,qh,14); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='700 13px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('中離',qx+qw/2,qy+19); ctx.textAlign='left';
+    MJ.hits.push({x:qx,y:qy,w:qw,h:qh,f:mjQuit});
+  }
   all.forEach(function(t,k){
     var x=x0+k*tw+(k===13?tw*0.3:0), sel=MJ.phase==='mine'&&k===MJ.sel;
     var y=handY-(sel?8:0);
@@ -2729,7 +2779,7 @@ function mjDraw(time){
       if(MJ.sel===i||!matchMedia('(hover:hover)').matches) mjDiscard(i); else MJ.sel=i; };})(k)});
   });
   // 結算
-  if(MJ.phase==='end'||MJ.phase==='out'){
+  if((MJ.phase==='end'||MJ.phase==='out')&&MJ.result){
     var r=MJ.result, wn=r.w===0?'你':MJ.seats[r.w].name;
     ctx.fillStyle='rgba(8,14,10,.72)'; ctx.fillRect(0,0,W,H);
     ctx.textAlign='center';
@@ -2742,6 +2792,11 @@ function mjDraw(time){
     ctx.textAlign='left';
   }
 }
+function mjDog(x,y,sc,dir,time){
+  ctx.save(); ctx.translate(x,y); ctx.scale(sc,sc);
+  drawDog(0,0,{dir:dir,sit:3,moving:0,walk:0,name:''},time);
+  ctx.restore();
+}
 function mjTap(x,y){
   if(MJ.phase==='end'){ if(MJ.t>0.8){ MJ.phase='out'; MJ.outT=0; } return; }
   for(var i=MJ.hits.length-1;i>=0;i--){var h=MJ.hits[i]; if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){h.f();return;}}
@@ -2749,9 +2804,10 @@ function mjTap(x,y){
 function mjKey(k,repeat){
   var n=MJ.hand.length+(MJ.draw?1:0);
   if(MJ.phase==='end'){ if(!repeat&&(k==='e'||k==='enter'||k===' '))mjTap(-1,-1); return; }
+  if((k==='escape'||k==='q')&&!repeat){ mjQuit(); return; }
   if(MJ.phase!=='mine')return;
-  if(k==='arrowleft'||k==='a'){ MJ.sel=(MJ.sel+n-1)%n; SND.blip(660,0.03); }
-  else if(k==='arrowright'||k==='d'){ MJ.sel=(MJ.sel+1)%n; SND.blip(660,0.03); }
+  if(k==='arrowleft'||k==='a'){ MJ.sel=(MJ.sel+n-1)%n; SND.clack(0,false); }
+  else if(k==='arrowright'||k==='d'){ MJ.sel=(MJ.sel+1)%n; SND.clack(0,false); }
   else if((k==='e'||k==='enter'||k===' ')&&!repeat) mjDiscard(MJ.sel);
 }
 cv.parentElement.addEventListener('pointerdown',function(e){
