@@ -1401,8 +1401,8 @@ function drawStyle(x,y,c,face,b,hs){
       for(var k=-6;k<=6;k+=3){ ctx.beginPath(); ctx.moveTo(x+k-2,y-33+b); ctx.lineTo(x+k,y-38.5+b); ctx.lineTo(x+k+2,y-33+b); ctx.closePath(); ctx.fill(); }
     }
   }else if(hs==='hank'){
-    // Hank：咖啡色刺刺亂髮、粗眉往上挑、小黑眼、微笑；深灰拉鍊帽T敞開（粉紅帽繩）＋白T；
-    //       彩虹條紋短褲（粉／黃／藍）、黑色內搭褲、黑球鞋白鞋底
+    // Hank：咖啡色中長直髮（齊整瀏海、兩側直直垂到耳下）、粗眉、小黑眼、微笑；
+    //       深灰拉鍊帽T敞開（粉紅帽繩）＋白T；黑色長褲、黑球鞋白鞋底
     var HC='#6b4330', HD='#4e2f20';
     ctx.fillStyle='#3b3b40'; rrect(ctx,x-7.5,y-19.5+b,15,11,4); ctx.fill();                          // 帽T
     if(!back){
@@ -1413,23 +1413,23 @@ function drawStyle(x,y,c,face,b,hs){
     }else{
       ctx.fillStyle='#2c2c30'; rrect(ctx,x-5.5,y-19.8+b,11,5.5,2.5); ctx.fill();                     // 背後的帽子
     }
-    var st=['#ef6aa0','#f2c94c','#5aa6e0','#ef6aa0'];                                               // 彩虹短褲
-    for(var si=0;si<4;si++){ ctx.fillStyle=st[si]; ctx.fillRect(x-7,y-8.8+si*1.1+b,14,1.15); }
-    ctx.fillStyle='#1b1b20'; ctx.fillRect(x-5.6,y-4.4+b,4.6,4); ctx.fillRect(x+1,y-4.4+b,4.6,4);    // 黑色內搭褲
+    ctx.fillStyle='#1b1b20'; rrect(ctx,x-7,y-9+b,14,4.6,1.5); ctx.fill();                            // 黑色長褲
+    ctx.fillRect(x-5.6,y-4.8+b,4.6,4.4); ctx.fillRect(x+1,y-4.8+b,4.6,4.4);
     ctx.fillStyle='#232328'; rrect(ctx,x-7,y-1.8,6.6,3,1.4); ctx.fill(); rrect(ctx,x+0.4,y-1.8,6.6,3,1.4); ctx.fill();   // 黑球鞋
     ctx.fillStyle='#f2f2ee'; ctx.fillRect(x-7,y+0.6,6.6,0.9); ctx.fillRect(x+0.4,y+0.6,6.6,0.9);       // 白鞋底
     // 頭：先蓋掉預設的眼睛與頭髮，再畫刺刺頭
     if(!back){ ctx.fillStyle=c; ctx.fillRect(x-6.6,y-28+b,13.2,4); }
-    ctx.fillStyle=HC; ctx.beginPath(); ctx.arc(x,y-27.4+b,8.9,Math.PI,0); ctx.fill();
-    var spikes=[[-9,-29,-10.6,-25.5],[-8,-33,-10,-34.4],[-4.5,-35.5,-5.4,-38.3],[-0.5,-36,0.3,-39],[3.5,-35.5,5.6,-38],[7.5,-33,10,-33.8],[9,-29,10.7,-26]];   // 亂翹但不要太尖
-    spikes.forEach(function(p){ ctx.beginPath(); ctx.moveTo(x+p[0]-2.4,y+p[1]+b+1.5); ctx.lineTo(x+p[2],y+p[3]+b); ctx.lineTo(x+p[0]+2.4,y+p[1]+b+1.5); ctx.closePath(); ctx.fill(); });
-    if(back){ rrect(ctx,x-9,y-28.5+b,18,8.5,4); ctx.fill(); }
+    ctx.fillStyle=HC; ctx.beginPath(); ctx.arc(x,y-27.4+b,9.2,Math.PI,0); ctx.fill();
+    var _unusedSpikes=[[-9,-29,-10.6,-25.5],[-8,-33,-10,-34.4],[-4.5,-35.5,-5.4,-38.3],[-0.5,-36,0.3,-39],[3.5,-35.5,5.6,-38],[7.5,-33,10,-33.8],[9,-29,10.7,-26]];   // 亂翹但不要太尖
+    if(back){ rrect(ctx,x-9.2,y-28.5+b,18.4,10.5,3.5); ctx.fill(); }                                // 背面：直髮垂到後頸
     else{
       var sx=side*1.4;
-      ctx.beginPath(); ctx.moveTo(x-8.6,y-29+b);                                                      // 有缺口的瀏海
-      [[-6.4,-26.2],[-4.6,-28.6],[-2.2,-26.4],[0,-28.8],[2.4,-26.6],[4.6,-28.6],[6.6,-26.4]].forEach(function(q){ ctx.lineTo(x+q[0]+sx,y+q[1]+b); });
-      ctx.lineTo(x+8.6,y-29+b); ctx.lineTo(x+8.6,y-31+b); ctx.lineTo(x-8.6,y-31+b); ctx.closePath(); ctx.fill();
-      ctx.fillRect(x-9,y-29+b,2.2,6); ctx.fillRect(x+6.8,y-29+b,2.2,6);                               // 鬢角
+      ctx.beginPath();                                                                                // 直直的瀏海，微微往一邊斜
+      ctx.moveTo(x-8.8,y-31+b); ctx.lineTo(x+8.8,y-31+b); ctx.lineTo(x+8.8,y-27.6+b);
+      ctx.lineTo(x+sx+1.5,y-26.4+b); ctx.lineTo(x-8.8,y-27.2+b); ctx.closePath(); ctx.fill();
+      rrect(ctx,x-9.3,y-29.5+b,3,9.5,1.2); ctx.fill(); rrect(ctx,x+6.3,y-29.5+b,3,9.5,1.2); ctx.fill();   // 兩側直髮垂到耳下
+      ctx.strokeStyle=HD; ctx.lineWidth=0.5; ctx.beginPath();                                       // 幾條髮絲
+      ctx.moveTo(x-3+sx,y-30.5+b); ctx.lineTo(x-3.4+sx,y-27+b); ctx.moveTo(x+2.5+sx,y-30.5+b); ctx.lineTo(x+2.2+sx,y-26.8+b); ctx.stroke();
       [x-3+sx,x+3+sx].forEach(function(ex,k){
         ctx.fillStyle=HD; ctx.save(); ctx.translate(ex,y-25.3+b); ctx.rotate(k?-0.14:0.14); ctx.fillRect(-2.4,-0.7,4.8,1.5); ctx.restore();   // 往上挑的粗眉
         ctx.fillStyle='#1a1412'; ctx.beginPath(); ctx.ellipse(ex,y-23.2+b,0.95,1.3,0,0,6.283); ctx.fill();                           // 小黑眼
