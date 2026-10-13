@@ -8,3 +8,7 @@
 - 人物：泡芙花花（台中・草悟道）、Hank（永和・永安市場與四號公園之間）
 
 引擎沿用自「內湖漫遊」（neihu-web）：WASD／方向鍵或觸控搖桿移動、E 互動、M 聲音、F 全螢幕。
+
+## 音效
+
+`sounds/` 裡的音效來自 [Kenney](https://kenney.nl/assets) 的 CC0 音效包（Interface Sounds、Impact Sounds、RPG Audio、Casino Audio、Music Jingles），轉成 m4a（單聲道 64kbps）方便 iPhone 播放。背景音樂與引擎聲為 Web Audio 程式合成。

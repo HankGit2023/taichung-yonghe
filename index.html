@@ -394,6 +394,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
           <button id="btn-reset" class="danger">清除進度</button>
         </div>
         <p class="note" style="margin-top:16px">地圖取材自台中市區與新北市永和區的真實地景——國家歌劇院、草悟道、審計新村、第二市場、宮原眼科，永安市場、四號公園、樂華夜市、福和橋。位置與比例為遊戲所需重新編排，不是地圖；高鐵台中站實際在烏日，遊戲裡放近了。</p>
+        <p class="note">音效：腳步、介面、麻將（籌碼）、車門、撞擊與短樂句來自 Kenney（kenney.nl）的 CC0 音效包；背景音樂與引擎聲為程式合成。</p>
       </div>
     </aside>
   </main>
@@ -546,10 +547,34 @@ var SND=(function(){
       t0+=n[1]*(win?0.85:1);
     });
   }
+  // 音效檔（Kenney 的 CC0 音效包，轉成 m4a 放在 sounds/）。第一次開聲音才載入；沒載到的就退回合成音
+  var SAMPLE_LIST={"step_concrete": ["step_concrete_0.m4a", "step_concrete_1.m4a", "step_concrete_2.m4a", "step_concrete_3.m4a", "step_concrete_4.m4a"], "step_grass": ["step_grass_0.m4a", "step_grass_1.m4a", "step_grass_2.m4a", "step_grass_3.m4a", "step_grass_4.m4a"], "tile_lay": ["tile_lay_0.m4a", "tile_lay_1.m4a", "tile_lay_2.m4a"], "tile_hit": ["tile_hit_0.m4a", "tile_hit_1.m4a", "tile_hit_2.m4a", "tile_hit_3.m4a"], "tile_shuffle": ["tile_shuffle_0.m4a", "tile_shuffle_1.m4a", "tile_shuffle_2.m4a"], "tick": ["tick_0.m4a", "tick_1.m4a"], "talk": ["talk_0.m4a", "talk_1.m4a"], "pickup": ["pickup_0.m4a", "pickup_1.m4a"], "confirm": ["confirm_0.m4a"], "toggle": ["toggle_0.m4a", "toggle_1.m4a"], "open": ["open_0.m4a"], "close": ["close_0.m4a"], "door": ["door_0.m4a", "door_1.m4a"], "bump": ["bump_0.m4a", "bump_1.m4a", "bump_2.m4a"], "arrive": ["arrive_0.m4a"], "win": ["win_0.m4a"], "lose": ["lose_0.m4a"]};
+  var SAMPLES={}, samplesLoading=false;
+  function loadSamples(){
+    if(samplesLoading||!ac)return; samplesLoading=true;
+    Object.keys(SAMPLE_LIST).forEach(function(k){
+      SAMPLES[k]=[];
+      SAMPLE_LIST[k].forEach(function(f){
+        fetch('sounds/'+f).then(function(r){ if(!r.ok)throw 0; return r.arrayBuffer(); })
+          .then(function(b){ return new Promise(function(res,rej){ ac.decodeAudioData(b,res,rej); }); })
+          .then(function(buf){ SAMPLES[k].push(buf); }).catch(function(){});
+      });
+    });
+  }
+  // 播一個音效：同類有好幾個檔就隨機挑一個、音高微調，聽起來不會一直重複。回傳 true 代表有播到
+  function sfx(k,vol,delay,rate){
+    if(!enabled||!ac)return false;
+    var arr=SAMPLES[k]; if(!arr||!arr.length)return false;
+    var src=ac.createBufferSource(); src.buffer=arr[Math.floor(Math.random()*arr.length)];
+    src.playbackRate.value=rate||(0.94+Math.random()*0.12);
+    var g=ac.createGain(); g.gain.value=(vol==null?0.6:vol);
+    src.connect(g); g.connect(master); src.start(ac.currentTime+(delay||0));
+    return true;
+  }
   function setEnabled(on){
     enabled=!!on;
     if(enabled){
-      ensureCtx();
+      ensureCtx(); loadSamples();
       if(ac&&ac.state==='suspended'){try{ac.resume();}catch(e){}}
       startBGM();
     }else{
@@ -568,8 +593,9 @@ var SND=(function(){
     setEnabled:setEnabled,
     punch:punch,
     blip:blip,
-    clack:function(delay,hi){                    // 麻將牌碰桌面的「喀」：短促的雜訊＋一點低頻
+    clack:function(delay,hi){                    // 麻將牌碰桌面的「喀」：有音檔用音檔，沒有就用合成的雜訊＋低頻
       if(!enabled||!ac)return;
+      if(sfx(hi?'tile_lay':'tile_hit',hi?0.75:0.5,delay))return;
       var t0=ac.currentTime+(delay||0), sr=ac.sampleRate, len=Math.floor(sr*0.035);
       var buf=ac.createBuffer(1,len,sr), d=buf.getChannelData(0);
       for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
@@ -582,7 +608,8 @@ var SND=(function(){
       o.connect(og); og.connect(master); o.start(t0); o.stop(t0+0.07);
     },
     setMode:setMode,
-    jingle:jingle
+    jingle:function(win){ if(sfx(win?'win':'lose',0.6))return; jingle(win); },
+    sfx:sfx
   };
 })();
 
@@ -1814,7 +1841,7 @@ function interact(){
   if(t.k==='car'){ startDrive(t.o); return; }
   if(t.k==='item'){
     state.found[t.o.n]=1;
-    toast('撿到了：'+t.o.n);
+    toast('撿到了：'+t.o.n); SND.sfx('pickup',0.6);
     showCard('圖鑑',t.o.n,t.o.w,t.o.d);
     addLog('在'+t.o.w+'撿到了'+t.o.n+'（'+clockStr()+'）');
     renderDex();updateHUD();save();
@@ -1854,7 +1881,7 @@ function interact(){
       var line=ln[n.li%ln.length]; n.li++;
       if(n.dog){ n.dog.sayT=2.2; n.dog.say=['汪！','汪汪！','（搖尾巴）','嗚汪～'][n.li%4]; }
       if(n.idle) n.idleT=Math.max(n.idleT,6);
-      say(n,line,3.5);
+      say(n,line,3.5); SND.sfx('talk',0.45);
       showCard('遇到的人',n.n,'就站在你旁邊',line+(n.buddy&&isBuddyChar()?'　（再按一次，邀他一起出遊）':''));
       toast(n.n+'：'+line);
     }
@@ -2499,6 +2526,7 @@ function rideFrame(dt,time){
 }
 function finishRide(){
   RIDE.on=false; document.body.classList.remove('in-ride');
+  SND.sfx('arrive',0.55);                         // 抵達的小樂句
   SND.setMode('field');
   var W=WORLDS[state.world];
   toast('抵達'+W.name);
@@ -2767,7 +2795,7 @@ function placeParty(){                           // 換城市或出生時，把�
 function buddyJoin(n){
   n.ask=0; n.inParty=1;
   if(state.party.indexOf(n.n)<0)state.party.push(n.n);
-  say(n,'好啊，走！',2.5);
+  say(n,'好啊，走！',2.5); SND.sfx('confirm',0.55);
   toast(n.n+'跟你一起出遊');
   showCard('出遊',n.n,'加入隊伍 · 現在 '+(state.party.length+1)+' 人','他會跟著你走，搭高鐵、台鐵也一起去。對他再說一次話，他就先回家。');
   addLog('約了'+n.n+'一起出遊（'+clockStr()+'）');
@@ -2824,7 +2852,8 @@ function startMahjong(){
   MJ.seats.forEach(function(p){p.sayT=0;p.say='';});
   document.body.classList.add('in-mj');
   SND.setMode('mj');                              // 換成麻將的背景樂
-  for(var ci=0;ci<12;ci++) SND.clack(ci*0.07+Math.random()*0.03, ci%3===0);   // 洗牌、砌牌的喀喀聲
+  if(!SND.sfx('tile_shuffle',0.7)||!SND.sfx('tile_shuffle',0.6,0.35)||!SND.sfx('tile_shuffle',0.6,0.7))
+    for(var ci=0;ci<12;ci++) SND.clack(ci*0.07+Math.random()*0.03, ci%3===0);   // 洗牌、砌牌：有音檔用音檔，沒有就用合成的喀喀聲
 }
 function mjQuit(){                               // 中離：牌局中途站起來走人
   if(!MJ.on||MJ.phase==='end'||MJ.phase==='out')return;
@@ -3018,8 +3047,8 @@ function mjKey(k,repeat){
   if(MJ.phase==='end'){ if(!repeat&&(k==='e'||k==='enter'||k===' '))mjTap(-1,-1); return; }
   if((k==='escape'||k==='q')&&!repeat){ mjQuit(); return; }
   if(MJ.phase!=='mine')return;
-  if(k==='arrowleft'||k==='a'){ MJ.sel=(MJ.sel+n-1)%n; SND.clack(0,false); }
-  else if(k==='arrowright'||k==='d'){ MJ.sel=(MJ.sel+1)%n; SND.clack(0,false); }
+  if(k==='arrowleft'||k==='a'){ MJ.sel=(MJ.sel+n-1)%n; SND.sfx('tick',0.35)||SND.clack(0,false); }
+  else if(k==='arrowright'||k==='d'){ MJ.sel=(MJ.sel+1)%n; SND.sfx('tick',0.35)||SND.clack(0,false); }
   else if((k==='e'||k==='enter'||k===' ')&&!repeat) mjDiscard(MJ.sel);
 }
 cv.parentElement.addEventListener('pointerdown',function(e){
@@ -3061,7 +3090,8 @@ function startDrive(car){
     for(var oi=0;oi<offs.length;oi++){ var ty2=(car.y+offs[oi])*TS-6; if(canDrive(state.px,ty2)&&canDrive(state.px+40,ty2)){ state.py=ty2; break; } }
   }
   keys={}; joyReset(); syncRunBtn();
-  [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,i*0.09,'sawtooth',0.035);});   // 發動引擎
+  SND.sfx('door',0.6);                            // 關車門
+  [98,123,147,196].forEach(function(f,i){SND.blip(f,0.16,0.25+i*0.09,'sawtooth',0.035);});   // 發動引擎
   var sang=NPCS.filter(function(n){return n.n==='桑董說車';})[0];
   if(sang&&!parked)say(sang,'喘…小心開…喘…',3.5);
   var riders=buddyParty().map(function(n){return n.n;});
@@ -3087,6 +3117,7 @@ function stopDrive(){
   }
   nudge({get x(){return state.px/TS;},set x(v){state.px=v*TS;},get y(){return state.py/TS;},set y(v){state.py=v*TS;}});
   SND.blip(147,0.2,0,'sawtooth',0.03); SND.blip(98,0.3,0.12,'sawtooth',0.03);   // 熄火
+  SND.sfx('door',0.6,0.35);                       // 下車關門
   placeParty();                                   // 同伴一起下車，排在你身後
   if(PDOG){ PDOG.x=state.px/TS+0.9; PDOG.y=state.py/TS+0.2; }
   var city=WORLDS[state.world].name;
@@ -3116,7 +3147,7 @@ function driveStep(dt,dx,dy,push){
   if(canDrive(nx,ny)){ state.px=nx; state.py=ny; DRIVE.dist+=Math.hypot(vx,vy); }
   else if(canDrive(nx,state.py)){ state.px=nx; DRIVE.speed*=0.7; DRIVE.dist+=Math.abs(vx); }
   else if(canDrive(state.px,ny)){ state.py=ny; DRIVE.speed*=0.7; DRIVE.dist+=Math.abs(vy); }
-  else{ if(Math.abs(DRIVE.speed)>120)SND.clack(0,true); DRIVE.speed=-DRIVE.speed*0.25; }   // 撞到了，彈回來
+  else{ if(Math.abs(DRIVE.speed)>120){ SND.sfx('bump',Math.min(0.8,Math.abs(DRIVE.speed)/500))||SND.clack(0,true); } DRIVE.speed=-DRIVE.speed*0.25; }   // 撞到了，彈回來
   var a=DRIVE.ang;
   state.dir=Math.abs(Math.cos(a))>Math.abs(Math.sin(a))?(Math.cos(a)>0?'right':'left'):(Math.sin(a)>0?'down':'up');
 }
@@ -3403,12 +3434,12 @@ function syncRunBtn(){                           // 走路時是「走／跑」�
 }
 function toggleRun(){
   if(typeof DRIVE!=='undefined'&&DRIVE.on){
-    state.boost=state.boost?0:1; syncRunBtn(); save();
+    state.boost=state.boost?0:1; syncRunBtn(); save(); SND.sfx('toggle',0.45);
     toast(state.boost?'加速模式！':'回到一般速度');
     if(state.boost)[220,330,440].forEach(function(f,i){SND.blip(f,0.1,i*0.05,'sawtooth',0.03);});
     return;
   }
-  state.run=state.run?0:1; syncRunBtn(); save();
+  state.run=state.run?0:1; syncRunBtn(); save(); SND.sfx('toggle',0.45);
   toast(state.run?'切換成跑步':'切換成走路');
 }
 rBtn.addEventListener('click',function(e){e.preventDefault();toggleRun();});
@@ -3419,7 +3450,7 @@ var TOD_ORDER=['auto','day','dusk','night'];
 function setTod(m,quiet){
   state.tod=TOD[m]?m:'auto';
   if(TOD[state.tod].clock!=null) state.clock=TOD[state.tod].clock;
-  syncTod(); updateHUD(); save();
+  syncTod(); updateHUD(); save(); SND.sfx('toggle',0.45);
   if(!quiet) toast(state.tod==='auto'?'時間會自己走':'固定在'+TOD[state.tod].name);
 }
 function syncTod(){
@@ -3458,6 +3489,7 @@ function buildWho(){
 }
 function openWho(){
   if(MJ.on||RIDE.on||BT.on)return;              // 打牌、坐車、對戰中不能換人
+  SND.sfx('open',0.45);
   buildWho(); whoOpen=true; whoEl.classList.add('on'); document.body.classList.add('in-who');
   keys={}; joyReset();
 }
@@ -3619,6 +3651,10 @@ function step(dt){
     state.px=Math.max(10,Math.min(WW-10,state.px));
     state.py=Math.max(10,Math.min(WH-10,state.py));
     state.anim+=dt*(1+ramp*0.8);
+    state.stepT=(state.stepT||0)+dt;
+    if(state.stepT>(ramp?0.25:0.37)){ state.stepT=0;
+      var ft=terrain[idx((state.px/TS)|0,(state.py/TS)|0)];
+      SND.sfx((ft===GRASS||ft===GRASS2||ft===BUSH||ft===SAND||ft===SOIL||ft===TRAIL)?'step_grass':'step_concrete',ramp?0.3:0.22); }
     if(ramp>0.3&&!reduce){
       state.dustT+=dt;
       if(state.dustT>0.065){state.dustT=0;
