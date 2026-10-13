@@ -101,6 +101,7 @@ body.focus-mode .hud-btn{top:calc(10px + env(safe-area-inset-top))}
 body.focus-mode .audio-btn{right:calc(10px + env(safe-area-inset-right))}
 body.focus-mode .fs-btn{right:calc(56px + env(safe-area-inset-right))}
 body.focus-mode .who-btn{right:calc(102px + env(safe-area-inset-right))}
+body.focus-mode .tod-btn{right:calc(148px + env(safe-area-inset-right))}
 /* 小地圖預設在 viewport 左上，加 safe-area 避開瀏海和橫向側邊 notch */
 body.focus-mode canvas.minimap{
   top:calc(8px + env(safe-area-inset-top));
@@ -179,6 +180,10 @@ body.focus-mode .pad{
 .audio-btn{right:10px}
 .fs-btn{right:56px}
 .who-btn{right:102px}
+.tod-btn{right:148px}
+.tod-row{display:flex;gap:6px;margin:4px 0 10px;flex-wrap:wrap}
+.tod-row button{flex:1;min-width:64px;padding:7px 4px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;font-size:13px}
+.tod-row button[aria-pressed="true"]{background:var(--jade);border-color:var(--jade);color:#fff;font-weight:700}
 /* 打麻將時把搖桿、行動鈕、小地圖、提示收起來 */
 body.in-mj .pad, body.in-mj #stickzone, body.in-mj #stick, body.in-mj .minimap, body.in-mj .hint, body.in-mj .toast{display:none!important}
 /* 選角色 */
@@ -311,6 +316,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
     <section class="viewport">
       <canvas id="game" width="960" height="600"></canvas>
       <canvas class="minimap" id="minimap" width="300" height="213"></canvas>
+      <button class="hud-btn tod-btn" id="tod-btn" type="button" aria-label="切換時段" title="切換時段（按 T）">🕒</button>
       <button class="hud-btn who-btn" id="who-btn" type="button" aria-label="換角色" title="換角色">👤</button>
       <button class="hud-btn fs-btn" id="fs-btn" type="button" aria-pressed="false" aria-label="全螢幕切換" title="全螢幕（按 F 切換）">⛶</button>
       <button class="hud-btn audio-btn" id="audio-btn" type="button" aria-pressed="false" aria-label="聲音開關" title="聲音關（按 M 開啟）">🔇</button>
@@ -367,6 +373,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
           <li><kbd>Shift</kbd><span>按住暫時跑步</span></li>
           <li><kbd>1 2 3</kbd><span>切換右邊的分頁</span></li>
           <li><kbd>M / F</kbd><span>聲音開關 / 全螢幕切換</span></li>
+          <li><kbd>T</kbd><span>切換時段：自動 → 白天 → 傍晚 → 晚上</span></li>
         </ul>
         <p class="note">台中、永和、台東是三張地圖。台中的<b>高鐵台中站</b>前按 <b>E</b> 搭高鐵到板橋、再轉捷運到永和；台中的<b>台中車站</b>（紅磚老站房旁）前按 <b>E</b> 搭台鐵普悠瑪號經南迴線到台東。永和的捷運永安市場站、台東的台東車站都可以搭回台中。坐車途中點一下可以直接跳到抵達。</p>
         <p class="note">一開始可以選要當誰：<b>路人甲</b>從高鐵台中站出發；也可以當 <b>Hank</b>、<b>泡芙花花</b>（泡芙會跟著妳）、<b>桑董說車</b>、<b>你好敝姓隨名便</b> 或 <b>小幸運</b>，從他們平常在的地方開始。你扮演的那個人就不會再出現在地圖上。右上角 👤 或下面的「換角色」隨時可以換。</p>
@@ -378,6 +385,10 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
     <p class="note"><b>泡芙花花</b>（身邊跟著她的奶油臘腸狗「泡芙」）在台中草悟道上、審計新村旁邊（從高鐵站往東走到台灣大道，再沿草悟道往北一點）；<b>Hank</b> 在永和，從永安市場站出口往西走、永安市場和四號公園之間的竹林路上。小地圖上會閃的<span style="color:#ef7fa6">粉紅星星</span>是泡芙花花、<span style="color:#3f8fd2">藍色星星</span>是 Hank。</p>
     <p class="note">時間會自己走，約十六分鐘一個日夜。天黑後路燈會亮，有幾樣東西只在晚上出現。</p>
         <div class="act">
+          <div class="tod-row" id="tod-row" role="group" aria-label="時段">
+            <button type="button" data-tod="auto">🕒 自動</button><button type="button" data-tod="day">☀️ 白天</button>
+            <button type="button" data-tod="dusk">🌇 傍晚</button><button type="button" data-tod="night">🌙 晚上</button>
+          </div>
           <button id="btn-who">換角色</button>
           <button id="btn-rest">休息一下（跳到下個時段）</button>
           <button id="btn-reset" class="danger">清除進度</button>
@@ -995,13 +1006,13 @@ function loadWorld(id,from){
 /* ============ 狀態 ============ */
 var state={
   px:44.5*TS, py:45*TS, dir:'down', moving:0, anim:0, hold:0, sprint:0, dustT:0,
-  world:'tc', pos:{}, cars:{}, clock: 8*60, found:{}, visited:{}, log:[], tab:'now', hits:0,
+  world:'tc', pos:{}, cars:{}, tod:'auto', clock: 8*60, found:{}, visited:{}, log:[], tab:'now', hits:0,
   party:[], idleT:0, puffT:0
 };
 var KEY='tc-yh-stroll-v1';
 function save(){
   recordPos();
-  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},tod:state.tod||'auto',btWins:state.btWins||0,mUnlocked:state.mUnlocked||0}));}catch(e){}
 }
 function load(){
   try{
@@ -1017,6 +1028,7 @@ function load(){
       if(typeof d.char==='string'&&d.char)state.char=d.char;
       if(d.pos&&typeof d.pos==='object')state.pos=d.pos;
       if(d.cars&&typeof d.cars==='object')state.cars=d.cars;
+      if(d.tod==='day'||d.tod==='dusk'||d.tod==='night')state.tod=d.tod;
       if(typeof d.btWins==='number')state.btWins=d.btWins;
       if(d.mUnlocked)state.mUnlocked=1;
       if(Array.isArray(d.party))state.party=d.party;
@@ -3201,6 +3213,7 @@ window.addEventListener('keydown',function(e){
   if(k==='m'){ e.preventDefault(); toggleAudio(); }
   if(k==='f'){ e.preventDefault(); toggleFullscreen(); }
   if(k==='r'&&!e.repeat){ e.preventDefault(); toggleRun(); }
+  if(k==='t'&&!e.repeat){ e.preventDefault(); cycleTod(); }
 });
 window.addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=0;});
 window.addEventListener('blur',function(){keys={};joyReset();});
@@ -3382,6 +3395,26 @@ function toggleRun(){
   toast(state.run?'切換成跑步':'切換成走路');
 }
 rBtn.addEventListener('click',function(e){e.preventDefault();toggleRun();});
+/* ---- 時段：自動（時間會走）／白天／傍晚／晚上（固定） ---- */
+var TOD={auto:{icon:'🕒',name:'自動'},day:{icon:'☀️',name:'白天',clock:12*60},
+         dusk:{icon:'🌇',name:'傍晚',clock:18*60+15},night:{icon:'🌙',name:'晚上',clock:21*60+30}};
+var TOD_ORDER=['auto','day','dusk','night'];
+function setTod(m,quiet){
+  state.tod=TOD[m]?m:'auto';
+  if(TOD[state.tod].clock!=null) state.clock=TOD[state.tod].clock;
+  syncTod(); updateHUD(); save();
+  if(!quiet) toast(state.tod==='auto'?'時間會自己走':'固定在'+TOD[state.tod].name);
+}
+function syncTod(){
+  var tb=document.getElementById('tod-btn'); tb.textContent=TOD[state.tod||'auto'].icon;
+  tb.title='時段：'+TOD[state.tod||'auto'].name+'（按 T 切換）';
+  Array.prototype.forEach.call(document.querySelectorAll('#tod-row button'),function(b){
+    b.setAttribute('aria-pressed',b.getAttribute('data-tod')===(state.tod||'auto')?'true':'false'); });
+}
+function cycleTod(){ setTod(TOD_ORDER[(TOD_ORDER.indexOf(state.tod||'auto')+1)%TOD_ORDER.length]); }
+document.getElementById('tod-btn').addEventListener('click',function(e){e.preventDefault();cycleTod();});
+document.getElementById('tod-row').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b)setTod(b.getAttribute('data-tod')); });
+syncTod();
 syncRunBtn();
 
 /* ---- 選角色畫面 ---- */
@@ -3515,6 +3548,7 @@ Array.prototype.forEach.call(document.querySelectorAll('.tabs button'),function(
   b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
 
 document.getElementById('btn-rest').addEventListener('click',function(){
+  if(state.tod&&state.tod!=='auto'){ state.tod='auto'; syncTod(); }
   var h=state.clock/60, target;
   if(h<7)target=8; else if(h<12)target=13; else if(h<17)target=18.5; else if(h<22)target=23; else target=31;
   state.clock=target*60; updateHUD(); save();
@@ -3651,7 +3685,7 @@ function step(dt){
       }
     }
   }
-  state.clock=(state.clock+dt*1.5)%1440;
+  if(!state.tod||state.tod==='auto') state.clock=(state.clock+dt*1.5)%1440;   // 固定時段時，時間停住
 }
 
 // NPC 的提示文字：[長版, 行動鈕短版]
