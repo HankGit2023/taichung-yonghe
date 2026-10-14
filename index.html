@@ -380,6 +380,7 @@ body.in-who .pad, body.in-who #stickzone, body.in-who #stick, body.in-who .hint{
         <p class="note">當 <b>Hank</b>、<b>泡芙花花</b> 或 <b>小幸運</b> 時，可以邀另外兩位一起出遊：對他說一次話、再按一次就加入，會跟著你搭車到別的城市；再跟他說話就先回家。帶著朋友到桑董車行的麻將桌，跟桑董或隨便說話就能坐下來打麻將（帶兩位的話隨機一位上桌，另一位在旁邊看）。</p>
         <p class="note">每個角色都會記住自己的位置：換人時，原本那個人就留在你最後帶他去的地方（別的角色走過去就看得到他、可以跟他說話）；再換回來，就從那裡接著走。一起出遊時換成隊伍裡的人，就是<b>換隊長</b>：大家原地繼續一起走；換成隊伍外的人，同伴就留在原地。</p>
         <p class="note">任何角色走到桑董車行的二手車旁邊按 <b>E</b> 都可以<b>試駕</b>：用搖桿或方向鍵在馬路上開車（開車時 R 或右下角「加速」鈕切換加速模式，按住 Shift 暫時加速），再按 E（手機按「下車」）就停車，車停在你旁邊，之後走過去還能再開；開回車行原本的車位附近再下車就算還車。</p>
+        <p class="note"><b>永和</b>有四個小遊戲：<b>樂華夜市彈珠台</b>（晚上五點後開，按住 E 蓄力、放開發射，五顆換獎品）、<b>四號公園跟跳舞的阿姨跳廣場舞</b>（箭頭碰到線時按方向鍵）、<b>豆漿大王幫老闆顧店</b>（照點單按 1～6 出餐，40 秒看能出幾單）、<b>四號公園池塘餵錦鯉</b>（點池塘丟飼料，收集九種錦鯉）。</p>
         <p class="note">在<b>台東</b>海邊面向太平洋按 <b>E</b> 可以<b>拋竿釣魚</b>：浮標沉下去、冒出「！」時馬上再按 <b>E</b> 收竿，太早或太慢魚都會跑掉，移動就收線。飛魚、鬼頭刀、晚上的白帶魚，運氣好還有雨傘旗魚和翻車魚。</p>
         <p class="note">每個城市路的盡頭都有<b>國道交流道</b>（綠色指示牌）。試駕開到牌子旁按 <b>E</b> 就上高速公路，過場後從另一個城市的交流道下來繼續開：台中↔永和走國道1號、台中↔台東走國道3號接南迴公路、永和↔台東走國道5號穿過雪山隧道接蘇花改。</p>
         <p class="note">台中文心路旁有一間<b>桑董二手車行</b>，老闆<b>桑董說車</b>和同事<b>你好敝姓隨名便</b>常坐在門口打麻將。台東的<b>鐵花村</b>有一位叫<b>小幸運</b>的女生。小地圖上金色星星是車行兩位、紅色星星是小幸運。</p>
@@ -882,10 +883,10 @@ var YH={
    {x:32,y:36,c:'#f2dcc4',c2:'#3b3b40',n:'Hank',named:1,buddy:1,hs:'hank',
     l:['對面有妹子 我要加她好友'],
     lBy:{puff:['不愧是神輔','我落枕了','對面有妹子 我要加她好友']}},
-   {x:63,y:21,c:'#f1e6d4',c2:'#5c6a62',n:'豆漿店老闆',l:['鹹的還是甜的？','燒餅剛出爐，要不要加蛋？','我們半夜也有開。']},
+   {x:63,y:21,c:'#f1e6d4',c2:'#5c6a62',n:'豆漿店老闆',mg:'soy',l:['鹹的還是甜的？','燒餅剛出爐，要不要加蛋？','我們半夜也有開。']},
    {x:40,y:44,c:'#e8e0cc',c2:'#4f7a46',n:'市場阿嬤',l:['少年仔，青菜一把三十啦。','這攤我顧五十年了。','早上人最多，下午就收了。']},
    {x:77,y:11,c:'#dde8ea',c2:'#2f6e82',n:'跳蚤市場攤主',l:['這台相機是我阿公的，還能用喔。','黑膠一張一百，三張兩百五。','看看就好，不買沒關係。']},
-   {x:19,y:37,c:'#f2e6d6',c2:'#c58a3c',n:'跳舞的阿姨',l:['一起來跳啦，很簡單！','我們每天晚上七點都在這裡。','跳完再去市場買菜。']}
+   {x:19,y:37,c:'#f2e6d6',c2:'#c58a3c',n:'跳舞的阿姨',mg:'dance',l:['一起來跳啦，很簡單！','我們每天晚上七點都在這裡。','跳完再去市場買菜。']}
   ],
   areas:[
    {x:0,y:0,w:90,h:11,n:'新店溪畔'},{x:0,y:11,w:90,h:4,n:'福和路'},{x:0,y:15,w:90,h:4,n:'頂溪一帶'},
@@ -1092,7 +1093,7 @@ var state={
 var KEY='tc-yh-stroll-v1';
 function save(){
   recordPos();
-  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},tod:state.tod||'auto',boost:state.boost?1:0,btWins:state.btWins||0,mUnlocked:state.mUnlocked||0,fish:state.fish||{}}));}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify({found:state.found,visited:state.visited,log:state.log.slice(0,30),clock:state.clock,hits:state.hits||0,party:state.party||[],world:state.world,run:state.run?1:0,char:state.char||'',pos:state.pos||{},cars:state.cars||{},tod:state.tod||'auto',boost:state.boost?1:0,btWins:state.btWins||0,mUnlocked:state.mUnlocked||0,fish:state.fish||{},mini:state.mini||{}}));}catch(e){}
 }
 function load(){
   try{
@@ -1114,6 +1115,7 @@ function load(){
       if(d.mUnlocked)state.mUnlocked=1;
       if(Array.isArray(d.party))state.party=d.party;
       if(d.fish&&typeof d.fish==='object')state.fish=d.fish;
+      if(d.mini&&typeof d.mini==='object')state.mini=d.mini;
     }
   }catch(e){}
 }
@@ -1838,7 +1840,8 @@ function findNearest(){
   if(!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if((CP.t==='car'||CP.t==='pcar')&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // 每個人都可以試駕／開走停著的車
   for(i=0;i<POIS.length;i++){var P=POIS[i];
     cand(4,8,'poi',P,P.x+0.5,P.y+0.5);}
-  var SA=seaAhead(); if(SA)cand(3.5,1,'fish',SA,ptx,pty);   // 台東：面向大海可以拋竿
+  var SA=seaAhead(); if(SA)cand(3.5,1,'fish',SA,ptx,pty);
+  var MS=mgSpot(); if(MS)cand(3.4,1,'mg',MS,ptx,pty);       // 永和：彈珠台、池塘   // 台東：面向大海可以拋竿
   return best;
 }
 
@@ -1897,6 +1900,7 @@ function interact(){
   var t=findNearest(); if(!t)return;
   if(t.k==='car'){ startDrive(t.o); return; }
   if(t.k==='fish'){ startFish(t.o); return; }
+  if(t.k==='mg'){ if(t.o.g==='pachi'&&!paOpen()){ toast('彈珠台晚上五點才開喔'); return; } mgStart(t.o.g); return; }
   if(t.k==='item'){
     state.found[t.o.n]=1;
     toast('撿到了：'+t.o.n); SND.sfx('pickup',0.6);
@@ -1908,6 +1912,7 @@ function interact(){
   }else if(t.k==='npc'){
     var n=t.o;
     if(n.battle){ startBattle(n); return; }      // 路人對戰
+    if(n.mg){ mgStart(n.mg,n); return; }         // 永和小遊戲：廣場舞、顧店
     if(n.mj&&isBuddyChar()&&buddyParty().length){ startMahjong(); return; }   // 帶朋友來就開打
     if(n.mj&&isBuddyChar()&&!buddyParty().length){ say(n,n.n==='桑董說車'?'三缺一…喘…再找個人來':'三缺一啦，再約個朋友來',3); toast('三缺一！先邀朋友一起來'); return; }
     if(n.buddy&&isBuddyChar()){
@@ -3122,6 +3127,492 @@ cv.parentElement.addEventListener('pointerdown',function(e){
    任何角色走到桑董車行的二手車旁按 E →「試駕這台車」：你坐進車裡，用搖桿／方向鍵開車。
    車頭會慢慢轉向你推的方向，有加速、煞車，只能開在馬路、人行道、廣場和橋上，撞到東西會彈回來。
    再按 E（手機按「下車」）就結束，車由桑董開回車行原位。 */
+/* ============ 永和小遊戲：彈珠台、廣場舞、豆漿店顧店、餵錦鯉 ============
+   共用一個全螢幕框架 MG（跟麻將一樣蓋住地圖）：
+   intro 淡入 → play → end 結算畫面（按 E／點一下離開）→ out 淡出回地圖。
+   隨時按 Esc／右上角「離開」中途結束。紀錄存在 state.mini。 */
+var MG={on:false};
+function mgRec(k){ state.mini=state.mini||{}; return state.mini[k]||(state.mini[k]={}); }
+function mgStart(kind,npc){
+  if(MG.on||MJ.on||RIDE.on||BT.on||DRIVE.on)return;
+  keys={}; joyReset(); measureSafe(); FISH.on=false;
+  MG={on:true,kind:kind,ph:'intro',t:0,hits:[],npc:npc||null,outT:0,G:{}};
+  MGAMES[kind].init(MG.G);
+  document.body.classList.add('in-mj');
+  SND.sfx('open',0.4);
+}
+function mgEnd(){ if(MG.ph==='play'){ MG.ph='end'; MG.t=0; MGAMES[MG.kind].result(MG.G); } }
+function mgQuit(){ if(MG.ph==='out')return; if(MG.ph!=='end')MG.G.quit=1; MG.ph='out'; MG.outT=0; }
+function mgFrame(dt,time){
+  var G=MGAMES[MG.kind];
+  MG.t+=dt;
+  if(MG.ph==='intro'&&MG.t>0.4){ MG.ph='play'; MG.t=0; }
+  if(MG.ph==='play'||MG.ph==='intro') G.step(MG.G,dt,time);
+  if(MG.ph==='out'){
+    MG.outT+=dt;
+    if(MG.outT>=0.4&&!MG.done){ MG.done=true; document.body.classList.remove('in-mj'); SND.setMode('field'); G.finish(MG.G); switchTab('now'); save(); }
+    if(MG.outT>=0.8){ MG.on=false; return; }
+    if(MG.outT>=0.4){ render(0,time); ctx.fillStyle='rgba(0,0,0,'+Math.max(0,1-(MG.outT-0.4)*2.5)+')'; ctx.fillRect(0,0,cv.vw,cv.vh); return; }
+  }
+  var W=cv.vw, H=cv.vh, st=safeIn.t, sb=safeIn.b;
+  MG.hits=[];
+  G.draw(MG.G,W,H,st,sb,time);
+  // 共用：右上角離開鈕
+  mgBtn(W-74,st+10,64,30,MG.ph==='end'?'回去':'離開',function(){ mgQuit(); },'#3b3f3a');
+  if(MG.ph==='end') mgResult(G.resultText(MG.G),W,H);
+  if(MG.ph==='out'){ ctx.fillStyle='rgba(0,0,0,'+Math.min(1,MG.outT*2.5)+')'; ctx.fillRect(0,0,W,H); }
+  else if(MG.ph==='intro'){ ctx.fillStyle='rgba(0,0,0,'+Math.max(0,1-MG.t*2.5)+')'; ctx.fillRect(0,0,W,H); }
+}
+function mgBtn(x,y,w,h,txt,f,bg,fg){
+  ctx.fillStyle=bg||'#2e7d6b'; rrect(ctx,x,y,w,h,8); ctx.fill();
+  ctx.fillStyle=fg||'#f6f3ea'; ctx.font='700 '+Math.min(15,h*0.45)+'px "Noto Sans TC",sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,x+w/2,y+h/2+1);
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  MG.hits.push({x:x,y:y,w:w,h:h,f:f});
+}
+function mgTitle(t,sub,W,st,col){
+  ctx.textAlign='center'; ctx.fillStyle=col||'#f6f1e2'; ctx.font='800 17px "Noto Sans TC",sans-serif';
+  ctx.fillText(t,W/2,st+30);
+  if(sub){ ctx.font='500 12px "Noto Sans TC",sans-serif'; ctx.globalAlpha=0.8; ctx.fillText(sub,W/2,st+49); ctx.globalAlpha=1; }
+  ctx.textAlign='left';
+}
+function mgResult(r,W,H){                          // r = [標題, 第二行, 第三行]
+  ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fillRect(0,0,W,H);
+  var bw=Math.min(320,W-40), bh=170, x=(W-bw)/2, y=(H-bh)/2;
+  ctx.fillStyle='#fbf7ec'; rrect(ctx,x,y,bw,bh,14); ctx.fill();
+  ctx.textAlign='center'; ctx.fillStyle='#2a3129';
+  ctx.font='800 20px "Noto Sans TC",sans-serif'; ctx.fillText(r[0],W/2,y+42);
+  ctx.font='600 14px "Noto Sans TC",sans-serif'; ctx.fillStyle='#7a5410'; ctx.fillText(r[1]||'',W/2,y+72);
+  ctx.font='500 12.5px "Noto Sans TC",sans-serif'; ctx.fillStyle='#4a524a'; ctx.fillText(r[2]||'',W/2,y+96);
+  ctx.textAlign='left';
+  if(MG.t>0.6) mgBtn(W/2-60,y+bh-50,120,36,'好',function(){ mgQuit(); });
+}
+function mgTap(x,y,down){
+  if(MG.ph==='out')return;
+  for(var i=MG.hits.length-1;i>=0;i--){var h=MG.hits[i]; if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){ if(down)h.f(); return; }}
+  if(MG.ph==='end')return;
+  var G=MGAMES[MG.kind]; if(G.tap)G.tap(MG.G,x,y,down);
+}
+function mgKey(k,repeat,up){
+  if(up){ var G0=MGAMES[MG.kind]; if(G0.keyUp)G0.keyUp(MG.G,k); return; }
+  if((k==='escape'||k==='q')&&!repeat){ mgQuit(); return; }
+  if(MG.ph==='end'){ if(!repeat&&(k==='e'||k==='enter'||k===' ')&&MG.t>0.6)mgQuit(); return; }
+  if(MG.ph!=='play')return;
+  var G=MGAMES[MG.kind]; if(G.key)G.key(MG.G,k,repeat);
+}
+(function(){
+  function pt(e){ var r=cv.getBoundingClientRect(); return [(e.clientX-r.left)*cv.vw/r.width,(e.clientY-r.top)*cv.vh/r.height]; }
+  cv.parentElement.addEventListener('pointerdown',function(e){
+    if(!MG.on)return;
+    if(e.target.closest&&e.target.closest('button'))return;
+    e.preventDefault(); var p=pt(e); mgTap(p[0],p[1],true);
+  });
+  window.addEventListener('pointerup',function(e){ if(!MG.on)return; var p=pt(e); mgTap(p[0],p[1],false); });
+  window.addEventListener('pointermove',function(e){ if(!MG.on)return; var G=MGAMES[MG.kind]; if(G.move){ var p=pt(e); G.move(MG.G,p[0],p[1]); } });
+})();
+function bigPerson(x,y,sc,look,dir,bob){
+  ctx.save(); ctx.translate(x,y); ctx.scale(sc,sc);
+  drawPerson(0,0,look.c,look.c2,dir||'down',bob||0,null,look.hs);
+  ctx.restore();
+}
+
+var MGAMES={};
+
+/* ---------- 1. 樂華夜市彈珠台（晚上才開） ----------
+   按住 E／空白鍵（手機按住「發射」）蓄力，力道會來回擺動，放開就把彈珠射上去。
+   彈珠從右上角往左飛進釘陣，掉進底下的格子得分。五顆打完換獎品。 */
+var PA_SLOTS=[80,20,40,150,40,20,80];
+var PA_PRIZE=[[520,'超大隻熊熊玩偶'],[340,'小熊玩偶'],[200,'夜市鑰匙圈'],[0,'彈力球']];
+MGAMES.pachi={
+  init:function(G){
+    G.balls=5; G.score=0; G.ball=null; G.charge=-1; G.flash=[]; G.lastSlot=-1; G.doneT=0; G.lane=0;
+    G.pegs=[];
+    for(var r=0;r<8;r++){ var off=r%2?5:0;
+      for(var x=7+off;x<=88;x+=10) G.pegs.push({x:x,y:30+r*10,h:0}); }
+    for(var s=1;s<7;s++) G.pegs.push({x:2+s*90/7,y:112,h:0,div:1});
+  },
+  power:function(G){ if(G.charge<0)return 0; var p=(G.charge/1.1)%2; return p>1?2-p:p; },
+  press:function(G){ if(G.ball||G.balls<=0||G.charge>=0)return; G.charge=0; },
+  release:function(G){
+    if(G.charge<0)return;
+    var p=this.power(G); G.charge=-1;
+    G.balls--; G.lane=0.22;
+    G.ball={x:95,y:6,vx:-(22+p*110)-Math.random()*6,vy:2,inSlot:-1};
+    SND.sfx('toggle',0.35);
+  },
+  key:function(G,k,rep){ if((k==='e'||k===' '||k==='enter'||k==='arrowup'||k==='w')&&!rep)this.press(G); },
+  keyUp:function(G,k){ if(k==='e'||k===' '||k==='enter'||k==='arrowup'||k==='w')this.release(G); },
+  tap:function(G,x,y,down){ if(down)this.press(G); else this.release(G); },
+  step:function(G,dt,time){
+    if(G.charge>=0)G.charge+=dt;
+    if(G.lane>0)G.lane-=dt;
+    for(var i=G.flash.length-1;i>=0;i--){ G.flash[i].t-=dt; if(G.flash[i].t<=0)G.flash.splice(i,1); }
+    G.pegs.forEach(function(p){ if(p.h>0)p.h-=dt; });
+    var b=G.ball;
+    if(b&&G.lane<=0){
+      var n=4, h=dt/n;
+      for(var s=0;s<n&&G.ball;s++){
+        b.vy+=280*h; b.x+=b.vx*h; b.y+=b.vy*h;
+        var sp=Math.hypot(b.vx,b.vy); if(sp>190){b.vx*=190/sp;b.vy*=190/sp;}
+        var right=b.y<16?98:92;
+        if(b.x<3.2){b.x=3.2;b.vx=Math.abs(b.vx)*0.6;}
+        if(b.x>right-1.2){b.x=right-1.2;b.vx=-Math.abs(b.vx)*0.6;}
+        if(b.y<3){b.y=3;b.vy=Math.abs(b.vy)*0.5;}
+        for(var j=0;j<G.pegs.length;j++){ var p=G.pegs[j], dx=b.x-p.x, dy=b.y-p.y, d=Math.hypot(dx,dy);
+          if(d<3.6&&d>0.001){ var nx=dx/d, ny=dy/d; b.x=p.x+nx*3.6; b.y=p.y+ny*3.6;
+            var vn=b.vx*nx+b.vy*ny; if(vn<0){ b.vx-=1.55*vn*nx; b.vy-=1.55*vn*ny; b.vx+=(Math.random()-0.5)*10;
+              if(p.h<=0){ p.h=0.15; SND.blip(1400+Math.random()*900,0.025,0,'square',0.015); } } } }
+        if(b.y>112){
+          if(b.inSlot<0) b.inSlot=Math.max(0,Math.min(6,Math.floor((b.x-2)/(90/7))));
+          var lo=2+b.inSlot*90/7+2.2, hi=2+(b.inSlot+1)*90/7-2.2;
+          if(b.x<lo){b.x=lo;b.vx=Math.abs(b.vx)*0.4;} if(b.x>hi){b.x=hi;b.vx=-Math.abs(b.vx)*0.4;}
+        }
+        if(b.y>134){
+          var v=PA_SLOTS[b.inSlot]; G.score+=v; G.lastSlot=b.inSlot; G.flash.push({s:b.inSlot,t:0.8,v:v});
+          SND.sfx(v>=150?'confirm':'pickup',v>=150?0.45:0.3);
+          G.ball=null; b=null;
+        }
+      }
+    }
+    if(!G.ball&&G.balls<=0&&MG.ph==='play'){ G.doneT+=dt; if(G.doneT>0.8)mgEnd(); }
+  },
+  draw:function(G,W,H,st,sb,time){
+    var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#2a1530'); g.addColorStop(1,'#120a18');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    for(var k=0;k<14;k++){ ctx.fillStyle='hsla('+((k*47+time*40)%360)+',90%,65%,'+(0.5+0.5*Math.sin(time*4+k))+')';
+      ctx.beginPath(); ctx.arc(W*(k+0.5)/14,st+62,3,0,6.283); ctx.fill(); }   // 攤位的燈泡
+    mgTitle('樂華夜市 · 彈珠台','按住 E（或按住發射）蓄力，放開射出 · 剩 '+G.balls+' 顆',W,st);
+    var top=st+76, bot=H-sb-84, bh=bot-top, sc=Math.min((W-40)/100,bh/140), bw=100*sc, bx=(W-bw)/2, by=top+(bh-140*sc)/2;
+    function X(u){return bx+u*sc;} function Y(v){return by+v*sc;}
+    ctx.fillStyle='#e9dcc0'; rrect(ctx,bx-8,by-8,bw+16,140*sc+16,16); ctx.fill();
+    ctx.fillStyle='#183d5c'; rrect(ctx,bx,by,bw,140*sc,10); ctx.fill();
+    ctx.strokeStyle='#c9b98f'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(92),Y(16)); ctx.lineTo(X(92),Y(140)); ctx.stroke();   // 發射軌道
+    // 格子
+    for(var s=0;s<7;s++){ var fx=X(2+s*90/7), fw=90/7*sc, fl=G.flash.filter(function(f){return f.s===s;})[0];
+      ctx.fillStyle=fl?'rgba(255,214,90,'+(0.3+fl.t*0.6)+')':(PA_SLOTS[s]>=150?'#7a2a2a':'#21557a'); ctx.fillRect(fx+1,Y(114),fw-2,Y(140)-Y(114)-2);
+      ctx.fillStyle='#fff6d8'; ctx.font='700 '+Math.max(10,Math.round(sc*4.2))+'px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+      ctx.fillText(PA_SLOTS[s],fx+fw/2,Y(130)); ctx.textAlign='left';
+      if(fl){ ctx.fillStyle='#ffd23a'; ctx.font='800 16px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('+'+fl.v,fx+fw/2,Y(108)-(0.8-fl.t)*30); ctx.textAlign='left'; } }
+    G.pegs.forEach(function(p){ ctx.fillStyle=p.h>0?'#fff4a8':(p.div?'#c9b98f':'#d9d2c0'); ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),Math.max(1.6,sc*1.3),0,6.283); ctx.fill();
+      if(p.div){ ctx.strokeStyle='#c9b98f'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(p.x),Y(p.y)); ctx.lineTo(X(p.x),Y(140)); ctx.stroke(); } });
+    var b=G.ball, r=Math.max(3,sc*2.3);
+    if(b&&G.lane>0){ var k2=1-G.lane/0.22; b={x:95,y:136-130*k2}; }
+    if(b){ ctx.fillStyle='#f4f4f4'; ctx.beginPath(); ctx.arc(X(b.x),Y(b.y),r,0,6.283); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(X(b.x)-r*0.35,Y(b.y)-r*0.35,r*0.35,0,6.283); ctx.fill(); }
+    // 底部：分數、力道條、發射鈕
+    var yb=H-sb-70;
+    ctx.fillStyle='#f6f1e2'; ctx.font='800 22px "Noto Sans TC",sans-serif'; ctx.fillText(G.score+' 分',16,yb+34);
+    for(var i=0;i<5;i++){ ctx.fillStyle=i<G.balls?'#f4f4f4':'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.arc(20+i*14,yb+52,5,0,6.283); ctx.fill(); }
+    var pw=this.power(G), mx=W-118, mw=Math.min(150,W*0.3);
+    ctx.fillStyle='rgba(255,255,255,.15)'; rrect(ctx,mx-mw-14,yb+22,mw,14,7); ctx.fill();
+    ctx.fillStyle='hsl('+(120-pw*120)+',80%,55%)'; rrect(ctx,mx-mw-14,yb+22,Math.max(14,mw*pw),14,7); ctx.fill();
+    ctx.fillStyle='#d8cfe0'; ctx.font='500 11px "Noto Sans TC",sans-serif'; ctx.fillText('力道',mx-mw-14,yb+16);
+    var btn={x:W-112,y:yb+8,w:100,h:52};
+    ctx.fillStyle=G.charge>=0?'#c0392b':(G.ball||G.balls<=0?'#555':'#e05a3a'); rrect(ctx,btn.x,btn.y,btn.w,btn.h,12); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='800 17px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('發射',btn.x+50,btn.y+33); ctx.textAlign='left';
+  },
+  result:function(G){
+    for(var i=0;i<PA_PRIZE.length;i++) if(G.score>=PA_PRIZE[i][0]){ G.prize=PA_PRIZE[i][1]; break; }
+    var R=mgRec('pachi'); R.prizes=R.prizes||{}; R.prizes[G.prize]=(R.prizes[G.prize]||0)+1;
+    G.best=G.score>(R.best||0); if(G.best)R.best=G.score;
+    SND.jingle(G.score>=200);
+  },
+  resultText:function(G){ return [G.score+' 分','老闆給你：'+G.prize, G.best?'新紀錄！':'最高紀錄 '+mgRec('pachi').best+' 分']; },
+  finish:function(G){
+    if(G.quit){ toast('不玩了，彈珠還給老闆'); return; }
+    toast('換到了：'+G.prize);
+    var R=mgRec('pachi'), list=Object.keys(R.prizes).map(function(k){return k+'×'+R.prizes[k];}).join('、');
+    showCard('夜市','彈珠台 · '+G.score+' 分','樂華夜市','五顆彈珠打完，老闆從架子上拿下「'+G.prize+'」給你。目前換過：'+list+'。最高 '+R.best+' 分。');
+    addLog('在樂華夜市打彈珠台 '+G.score+' 分，換到'+G.prize+'（'+clockStr()+'）');
+  }
+};
+
+/* ---------- 2. 四號公園廣場舞：跟著跳舞的阿姨跳 ----------
+   四個方向的箭頭跟著節拍往下掉，碰到底下那條線時按對應的方向鍵（手機點那一欄）。 */
+var DN_DIRS=['left','down','up','right'], DN_KEYS={arrowleft:0,a:0,arrowdown:1,s:1,arrowup:2,w:2,arrowright:3,d:3};
+var DN_MEL=[392,440,523,587,659,587,523,440, 392,523,587,659,784,659,587,523];
+MGAMES.dance={
+  init:function(G){
+    G.bpm=112; G.beat=60/G.bpm; G.t=-2.4*G.beat-1.2; G.lastBeat=-99; G.notes=[]; G.score=0; G.combo=0; G.maxCombo=0;
+    G.judge=null; G.dir='down'; G.press=[0,0,0,0]; G.cnt={p:0,g:0,m:0};
+    var last=-1;
+    for(var b=4;b<36;b++){
+      if(b<34&&Math.random()<0.85){ var L; do{L=Math.floor(Math.random()*4);}while(L===last&&Math.random()<0.6); last=L; G.notes.push({t:b*G.beat,l:L}); }
+      if(b>=14&&b<34&&Math.random()<0.3) G.notes.push({t:(b+0.5)*G.beat,l:Math.floor(Math.random()*4)});
+    }
+    G.end=36*G.beat;
+    SND.setMode('none');
+    if(MG.npc) say(MG.npc,'跟著我跳，很簡單！',3);
+  },
+  hit:function(G,L){
+    G.press[L]=0.12; G.dir=DN_DIRS[L];
+    var best=null, bd=1;
+    G.notes.forEach(function(n){ if(n.l===L&&!n.done){ var d=Math.abs(n.t-G.t); if(d<bd){bd=d;best=n;} } });
+    if(best&&bd<0.17){
+      best.done=1; var pf=bd<0.07;
+      G.score+=pf?100:50; G.combo++; G.maxCombo=Math.max(G.maxCombo,G.combo); G.cnt[pf?'p':'g']++;
+      G.judge={txt:pf?'完美！':'不錯',t:0.5,c:pf?'#ffd23a':'#9fe0b0'};
+    }
+  },
+  key:function(G,k){ if(k in DN_KEYS)this.hit(G,DN_KEYS[k]); },
+  tap:function(G,x,y,down){ if(!down)return; var W=cv.vw, lw=Math.min(80,W/5), x0=W/2-lw*2; var L=Math.floor((x-x0)/lw); if(L>=0&&L<4&&y>cv.vh*0.3)this.hit(G,L); },
+  step:function(G,dt){
+    if(MG.ph!=='play')return;
+    G.t+=dt;
+    var b=Math.floor(G.t/G.beat+0.0001);
+    if(b!==G.lastBeat&&G.t>-4*G.beat-0.01){ G.lastBeat=b;
+      if(b<36){
+        SND.blip(70,0.16,0,'sine',0.35); SND.blip(140,0.06,0,'triangle',0.08);            // 咚
+        SND.blip(5200,0.025,G.beat/2,'square',0.012);                                     // 嚓
+        if(b>=0){ SND.blip(DN_MEL[(b+16)%16],G.beat*0.8,0,'triangle',0.07); if(b%2)SND.blip(DN_MEL[(b+3)%16]/2,G.beat*0.4,G.beat/2,'triangle',0.05); }
+        else SND.blip(880,0.05,0,'square',0.03);                                          // 倒數
+      }
+    }
+    for(var k=0;k<4;k++) if(G.press[k]>0)G.press[k]-=dt;
+    if(G.judge){ G.judge.t-=dt; if(G.judge.t<=0)G.judge=null; }
+    G.notes.forEach(function(n){ if(!n.done&&G.t-n.t>0.17){ n.done=1; n.miss=1; G.combo=0; G.cnt.m++; G.judge={txt:'Miss',t:0.4,c:'#e07a6a'}; } });
+    if(G.t>G.end+0.8)mgEnd();
+  },
+  draw:function(G,W,H,st,sb,time){
+    var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#3a2c4f'); g.addColorStop(1,'#d88a5a');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    mgTitle('四號公園 · 廣場舞','箭頭碰到線時按方向鍵（手機點那一欄）',W,st);
+    var beatPh=G.t>0?((G.t/G.beat)%1):0, bob=-Math.abs(Math.sin(beatPh*Math.PI))*6;
+    var sc=Math.min(2.6,H/260), py=st+70+30*sc;
+    var aunt=MG.npc||{c:'#f2e6d6',c2:'#c58a3c'};
+    var ad=G.t>0?DN_DIRS[Math.floor(G.t/G.beat)%4]:'down';
+    bigPerson(W/2-60,py,sc,aunt,ad,bob); bigPerson(W/2+60,py,sc,PL,G.dir,bob*0.8);
+    ctx.fillStyle='#fff'; ctx.font='600 12px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+    ctx.fillText('跳舞的阿姨',W/2-60,py+16); ctx.fillText(charById(state.char).name,W/2+60,py+16); ctx.textAlign='left';
+    // 跑道
+    var lw=Math.min(80,W/5), x0=W/2-lw*2, top=py+28, line=H-sb-70, spd=(line-top)/1.4;
+    for(var L=0;L<4;L++){ ctx.fillStyle=G.press[L]>0?'rgba(255,255,255,.22)':'rgba(0,0,0,.18)'; ctx.fillRect(x0+L*lw+2,top,lw-4,H-sb-top-8);
+      this.arrow(x0+L*lw+lw/2,line,L,lw*0.3,'rgba(255,255,255,.35)',true); }
+    ctx.fillStyle='rgba(255,255,255,.6)'; ctx.fillRect(x0,line-1,lw*4,2);
+    var cols=['#e0507a','#4aa0e0','#5ac070','#f0a030'];
+    G.notes.forEach(function(n){ if(n.done&&!n.miss)return; var y=line-(n.t-G.t)*spd; if(y<top-20||y>H)return;
+      this.arrow(x0+n.l*lw+lw/2,y,n.l,lw*0.3,n.miss?'rgba(120,120,120,.6)':cols[n.l]); },this);
+    if(G.t<0){ var c=Math.ceil(-G.t/G.beat); ctx.fillStyle='#fff'; ctx.font='800 40px "Noto Sans TC",sans-serif'; ctx.textAlign='center';
+      ctx.fillText(c<=4?String(c):'準備…',W/2,(top+line)/2); ctx.textAlign='left'; }
+    if(G.judge){ ctx.fillStyle=G.judge.c; ctx.font='800 26px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText(G.judge.txt,W/2,line-60-(0.5-G.judge.t)*30); ctx.textAlign='left'; }
+    ctx.fillStyle='#fff'; ctx.font='800 18px "Noto Sans TC",sans-serif'; ctx.fillText(G.score+' 分',14,st+80);
+    if(G.combo>2){ ctx.font='700 13px "Noto Sans TC",sans-serif'; ctx.fillText(G.combo+' 連擊',14,st+100); }
+  },
+  arrow:function(x,y,L,r,col,outline){
+    ctx.save(); ctx.translate(x,y); ctx.rotate([Math.PI,Math.PI/2,-Math.PI/2,0][L]);
+    ctx.beginPath(); ctx.moveTo(r,0); ctx.lineTo(0,-r); ctx.lineTo(0,-r*0.45); ctx.lineTo(-r,-r*0.45); ctx.lineTo(-r,r*0.45); ctx.lineTo(0,r*0.45); ctx.lineTo(0,r); ctx.closePath();
+    if(outline){ ctx.strokeStyle=col; ctx.lineWidth=2; ctx.stroke(); } else { ctx.fillStyle=col; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=1.5; ctx.stroke(); }
+    ctx.restore();
+  },
+  result:function(G){
+    var tot=G.notes.length*100; G.acc=tot?G.score/tot:0;
+    G.grade=G.acc>=0.9?'S':G.acc>=0.75?'A':G.acc>=0.5?'B':'C';
+    G.line={S:'妳可以來帶隊了！',A:'跳得很好喔，明天再來！',B:'還可以啦，多跳幾次就會了。',C:'沒關係，阿姨一開始也是這樣。'}[G.grade];
+    var R=mgRec('dance'); G.best=G.score>(R.best||0); if(G.best){R.best=G.score;R.grade=G.grade;} R.n=(R.n||0)+1;
+    SND.jingle(G.acc>=0.5);
+  },
+  resultText:function(G){ return ['評價 '+G.grade+' · '+G.score+' 分','阿姨說：'+G.line,'完美 '+G.cnt.p+' · 不錯 '+G.cnt.g+' · Miss '+G.cnt.m+' · 最多 '+G.maxCombo+' 連擊']; },
+  finish:function(G){
+    if(G.quit){ toast('跳到一半溜走了'); if(MG.npc)say(MG.npc,'欸，還沒跳完耶！',3); return; }
+    if(MG.npc)say(MG.npc,G.line,3.5);
+    toast('廣場舞評價 '+G.grade);
+    showCard('廣場舞','評價 '+G.grade+' · '+G.score+' 分','四號公園','阿姨說：「'+G.line+'」最高紀錄 '+mgRec('dance').best+' 分。');
+    addLog('在四號公園跟阿姨跳廣場舞，評價 '+G.grade+'（'+clockStr()+'）');
+  }
+};
+
+/* ---------- 3. 世界豆漿大王：幫老闆顧店 ----------
+   客人一個一個來點餐，照單把餐點放進托盤（點按鈕或按 1～6），點對就出餐。40 秒內看能出幾單。 */
+var SOY_MENU=['鹹豆漿','甜豆漿','燒餅油條','蛋餅','飯糰','小籠包'];
+var SOY_COL=['#e6c27a','#f3ecd8','#d39a4a','#f2d26a','#efe9dc','#f7f1e6'];
+var SOY_GUEST=[
+  {n:'上班族',c:'#f0d6bc',c2:'#33435c'},{n:'阿伯',c:'#e8cfb2',c2:'#7a6a50'},{n:'學生',c:'#f3dcc4',c2:'#2f6e82'},
+  {n:'外送員',c:'#eed2b6',c2:'#d0402e'},{n:'夜貓子',c:'#f0dac2',c2:'#2a2a33'},{n:'媽媽',c:'#f5dcc8',c2:'#b05a7a'}];
+MGAMES.soy={
+  init:function(G){ G.left=40; G.served=0; G.wrong=0; G.tray=[]; G.say=null; G.next=0; this.newGuest(G);
+    if(MG.npc)say(MG.npc,'我去後面揉麵，前面交給你！',3); },
+  newGuest:function(G){
+    var n=1+Math.floor(Math.random()*(G.served<3?2:3)), o=[];
+    for(var i=0;i<n;i++) o.push(Math.floor(Math.random()*SOY_MENU.length));
+    o.sort(); G.order=o; G.guest=SOY_GUEST[Math.floor(Math.random()*SOY_GUEST.length)]; G.tray=[]; G.gin=0;
+  },
+  add:function(G,i){
+    if(G.next>0)return;
+    var need=G.order.filter(function(x){return x===i;}).length, have=G.tray.filter(function(x){return x===i;}).length;
+    if(have>=need){ G.wrong++; G.tray=[]; G.say={t:1,txt:'我沒點'+SOY_MENU[i]+'啦！'}; SND.sfx('bump',0.4); return; }
+    G.tray.push(i); SND.sfx('tick',0.35);
+    if(G.tray.length===G.order.length){ G.served++; G.next=0.55; G.say={t:0.55,txt:['謝謝老闆！','好香喔～','明天再來！','讚啦！'][Math.floor(Math.random()*4)]}; SND.sfx('confirm',0.35); }
+  },
+  key:function(G,k){ var i='123456'.indexOf(k); if(i>=0)this.add(G,i); },
+  step:function(G,dt){
+    if(MG.ph!=='play')return;
+    G.left-=dt; G.gin+=dt;
+    if(G.say){ G.say.t-=dt; if(G.say.t<=0)G.say=null; }
+    if(G.next>0){ G.next-=dt; if(G.next<=0)this.newGuest(G); }
+    if(G.left<=0){ G.left=0; mgEnd(); }
+  },
+  draw:function(G,W,H,st,sb,time){
+    ctx.fillStyle='#f4e7cf'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#c0392b'; ctx.fillRect(0,0,W,st+64);
+    mgTitle('世界豆漿大王 · 顧店','照客人點的把餐點放進托盤（按 1～6 或點按鈕）',W,st);
+    // 時間條
+    ctx.fillStyle='rgba(0,0,0,.12)'; ctx.fillRect(16,st+72,W-32,8);
+    ctx.fillStyle=G.left<10?'#d0402e':'#2e7d6b'; ctx.fillRect(16,st+72,(W-32)*G.left/40,8);
+    ctx.fillStyle='#4a3a28'; ctx.font='700 14px "Noto Sans TC",sans-serif';
+    ctx.fillText('出餐 '+G.served+' 單',16,st+100); ctx.textAlign='right'; ctx.fillText(Math.ceil(G.left)+' 秒',W-16,st+100); ctx.textAlign='left';
+    // 客人與點單
+    var gy=st+150+Math.min(40,H*0.04), slide=Math.min(1,G.gin*4);
+    var gx=W*0.28-(1-slide)*80;
+    bigPerson(gx,gy+30,Math.min(2.4,H/280),G.guest,'down',0);
+    ctx.fillStyle='#4a3a28'; ctx.font='600 12px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText(G.guest.n,gx,gy+48); ctx.textAlign='left';
+    var bx=W*0.28+40, bw=Math.min(240,W-bx-16), bh=24+G.order.length*22;
+    ctx.fillStyle='#fffdf6'; rrect(ctx,bx,gy-40,bw,bh,10); ctx.fill(); ctx.strokeStyle='#cdb98f'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.font='700 14px "Noto Sans TC",sans-serif';
+    var tc=G.tray.slice();
+    G.order.forEach(function(o,i){ var j=tc.indexOf(o), ok=j>=0; if(ok)tc.splice(j,1);
+      ctx.fillStyle=ok?'#2e7d6b':'#3a3128'; ctx.fillText((ok?'✓ ':'・ ')+SOY_MENU[o],bx+14,gy-40+26+i*22); });
+    if(G.say){ ctx.fillStyle=G.say.txt.indexOf('沒點')>=0?'#c0392b':'#2e7d6b'; ctx.font='800 16px "Noto Sans TC",sans-serif'; ctx.fillText(G.say.txt,bx,gy-52); }
+    // 托盤
+    var ty=gy+70; ctx.fillStyle='#8a5a3b'; rrect(ctx,W/2-130,ty,260,46,10); ctx.fill();
+    G.tray.forEach(function(o,i){ ctx.fillStyle=SOY_COL[o]; ctx.beginPath(); ctx.arc(W/2-100+i*60,ty+23,17,0,6.283); ctx.fill();
+      ctx.fillStyle='#4a3a28'; ctx.font='700 10px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText(SOY_MENU[o].slice(0,3),W/2-100+i*60,ty+27); ctx.textAlign='left'; });
+    // 菜單按鈕
+    var cols=3, gap=10, mw=Math.min(130,(W-32-gap*2)/3), mh=46, mx=(W-(mw*3+gap*2))/2, my=H-sb-16-mh*2-gap;
+    var self=this;
+    SOY_MENU.forEach(function(m,i){ var x=mx+(i%cols)*(mw+gap), y=my+Math.floor(i/cols)*(mh+gap);
+      mgBtn(x,y,mw,mh,(i+1)+' '+m,function(){ if(MG.ph==='play')self.add(G,i); },'#fffdf6','#3a3128');
+      ctx.strokeStyle='#cdb98f'; ctx.lineWidth=1.5; rrect(ctx,x,y,mw,mh,8); ctx.stroke(); });
+  },
+  result:function(G){ var R=mgRec('soy'); G.best=G.served>(R.best||0); if(G.best)R.best=G.served; SND.jingle(G.served>=5);
+    G.pay=G.served*35; G.line=G.served>=12?'你比我還快耶！':G.served>=7?'不錯喔，可以來打工。':G.served>=3?'還行啦，慢慢來。':'……我還是自己來好了。'; },
+  resultText:function(G){ return ['出餐 '+G.served+' 單','老闆：「'+G.line+'」','點錯 '+G.wrong+' 次 · 工錢 '+G.pay+' 元'+(G.best?' · 新紀錄！':'')]; },
+  finish:function(G){
+    if(G.quit){ toast('顧到一半就跑了'); if(MG.npc)say(MG.npc,'欸！客人還在排耶！',3); return; }
+    if(MG.npc)say(MG.npc,G.line,3.5);
+    toast('出餐 '+G.served+' 單，拿到 '+G.pay+' 元');
+    showCard('顧店','出餐 '+G.served+' 單','世界豆漿大王','老闆從後面走出來：「'+G.line+'」塞給你 '+G.pay+' 元和一套燒餅油條。最高紀錄 '+mgRec('soy').best+' 單。');
+    addLog('在豆漿大王幫忙顧店，出了 '+G.served+' 單（'+clockStr()+'）');
+  }
+};
+
+/* ---------- 4. 四號公園池塘：餵錦鯉 ----------
+   點池塘丟飼料（鍵盤用方向鍵移動準星、E 丟），錦鯉會游過來搶。吃到飼料的那條就記進錦鯉圖鑑。 */
+var KOI_TYPES=[
+  {n:'紅白',w:16,b:'#fbf7ef',s:['#e0452c']},
+  {n:'大正三色',w:12,b:'#fbf7ef',s:['#e0452c','#1e1e22']},
+  {n:'昭和三色',w:10,b:'#1e1e22',s:['#e0452c','#fbf7ef']},
+  {n:'黃金',w:10,b:'#e8b438',s:[],shine:1},
+  {n:'白金',w:8,b:'#e9eef0',s:[],shine:1},
+  {n:'淺黃',w:9,b:'#7f95a8',s:['#e2783a']},
+  {n:'緋鯉',w:12,b:'#e86a2a',s:[]},
+  {n:'丹頂',w:2.5,b:'#fbf7ef',s:[],tancho:1,rare:1},
+  {n:'烏鯉',w:2.5,b:'#2a2d33',s:['#3a3e46'],rare:1}
+];
+MGAMES.koi={
+  pick:function(){ var t=0; KOI_TYPES.forEach(function(k){t+=k.w;}); var r=Math.random()*t;
+    for(var i=0;i<KOI_TYPES.length;i++){ r-=KOI_TYPES[i].w; if(r<=0)return KOI_TYPES[i]; } return KOI_TYPES[0]; },
+  init:function(G){
+    G.food=12; G.pellets=[]; G.koi=[]; G.caught=[]; G.cx=0.5; G.cy=0.5; G.rip=[]; G.doneT=0; G.msg=null;
+    for(var i=0;i<8;i++) G.koi.push({x:0.2+Math.random()*0.6,y:0.25+Math.random()*0.5,a:Math.random()*6.28,sp:0.05,
+      ty:this.pick(),len:0.07+Math.random()*0.04,ph:Math.random()*6,spots:[[Math.random()*0.5-0.1,Math.random()-0.5],[Math.random()*0.6-0.4,Math.random()-0.5],[-Math.random()*0.5,Math.random()-0.5]]});
+  },
+  toss:function(G,u,v){
+    if(G.food<=0)return;
+    if((u-0.5)*(u-0.5)/0.2+(v-0.5)*(v-0.5)/0.17>1)return;
+    G.food--; G.pellets.push({x:u,y:v,t:0}); G.rip.push({x:u,y:v,t:0}); SND.sfx('tick',0.3);
+  },
+  key:function(G,k){ if(k==='e'||k===' '||k==='enter')this.toss(G,G.cx,G.cy); },
+  tap:function(G,x,y,down){ if(!down)return; var P=G.pond; if(!P)return; var u=(x-P.x)/P.w, v=(y-P.y)/P.h; G.cx=u; G.cy=v; this.toss(G,u,v); },
+  step:function(G,dt,time){
+    var mv=0.5*dt;
+    if(keys['arrowleft']||keys['a'])G.cx-=mv; if(keys['arrowright']||keys['d'])G.cx+=mv;
+    if(keys['arrowup']||keys['w'])G.cy-=mv; if(keys['arrowdown']||keys['s'])G.cy+=mv;
+    G.cx=Math.max(0.1,Math.min(0.9,G.cx)); G.cy=Math.max(0.12,Math.min(0.88,G.cy));
+    if(G.msg){ G.msg.t-=dt; if(G.msg.t<=0)G.msg=null; }
+    for(var i=G.rip.length-1;i>=0;i--){ G.rip[i].t+=dt; if(G.rip[i].t>1.2)G.rip.splice(i,1); }
+    for(i=G.pellets.length-1;i>=0;i--){ G.pellets[i].t+=dt; if(G.pellets[i].t>6)G.pellets.splice(i,1); }
+    var self=this;
+    G.koi.forEach(function(f){
+      f.ph+=dt*(f.sp>0.1?14:6);
+      var tgt=null, td=0.45;
+      G.pellets.forEach(function(p){ var d=Math.hypot(p.x-f.x,p.y-f.y); if(d<td&&p.t>0.25){td=d;tgt=p;} });
+      var want;
+      if(tgt){ want=Math.atan2(tgt.y-f.y,tgt.x-f.x); f.sp=Math.min(0.24,f.sp+dt*0.4);
+        if(td<0.03){ G.pellets.splice(G.pellets.indexOf(tgt),1); self.eat(G,f); } }
+      else{ f.wt=(f.wt||0)-dt; if(f.wt<=0){ f.wt=1.5+Math.random()*2.5; f.wa=f.a+(Math.random()-0.5)*2; } want=f.wa!=null?f.wa:f.a; f.sp+=(0.06-f.sp)*dt; }
+      var dA=Math.atan2(Math.sin(want-f.a),Math.cos(want-f.a)); f.a+=Math.max(-3*dt,Math.min(3*dt,dA));
+      f.x+=Math.cos(f.a)*f.sp*dt; f.y+=Math.sin(f.a)*f.sp*dt*1.15;
+      var e=(f.x-0.5)*(f.x-0.5)/0.17+(f.y-0.5)*(f.y-0.5)/0.13;
+      if(e>1){ f.a=Math.atan2(0.5-f.y,0.5-f.x)+(Math.random()-0.5)*0.6; f.wa=f.a; f.x+=(0.5-f.x)*0.02; f.y+=(0.5-f.y)*0.02; }
+    });
+    if(G.food<=0&&!G.pellets.length&&MG.ph==='play'){ G.doneT+=dt; if(G.doneT>1)mgEnd(); }
+  },
+  eat:function(G,f){
+    var R=mgRec('koi'); R.seen=R.seen||{}; var isNew=!R.seen[f.ty.n]; R.seen[f.ty.n]=(R.seen[f.ty.n]||0)+1;
+    G.caught.push(f.ty.n); G.rip.push({x:f.x,y:f.y,t:0});
+    G.msg={t:1.6,txt:(isNew?'新的錦鯉！':'')+f.ty.n+(f.ty.rare?'（稀有）':'')+' 吃到了',c:isNew?'#ffd23a':'#fff'};
+    SND.sfx(isNew?(f.ty.rare?'win':'pickup'):'tick',isNew?0.4:0.3);
+  },
+  drawKoi:function(f,P){
+    var x=P.x+f.x*P.w, y=P.y+f.y*P.h, L=f.len*P.w, wag=Math.sin(f.ph)*0.35;
+    ctx.save(); ctx.translate(x,y); ctx.rotate(f.a);
+    ctx.fillStyle='rgba(0,30,40,.25)'; ctx.beginPath(); ctx.ellipse(3,4,L*0.55,L*0.2,0,0,6.283); ctx.fill();
+    ctx.fillStyle=f.ty.b;                                                       // 尾巴
+    ctx.save(); ctx.translate(-L*0.45,0); ctx.rotate(wag);
+    ctx.globalAlpha=0.85; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-L*0.35,-L*0.2); ctx.lineTo(-L*0.28,0); ctx.lineTo(-L*0.35,L*0.2); ctx.closePath(); ctx.fill(); ctx.restore(); ctx.globalAlpha=1;
+    ctx.beginPath(); ctx.ellipse(-L*0.18,-L*0.17,L*0.12,L*0.05,-0.6,0,6.283); ctx.ellipse(-L*0.18,L*0.17,L*0.12,L*0.05,0.6,0,6.283); ctx.fill();   // 胸鰭
+    ctx.beginPath(); ctx.ellipse(0,0,L*0.5,L*0.17,0,0,6.283); ctx.fill();      // 身體
+    ctx.save(); ctx.beginPath(); ctx.ellipse(0,0,L*0.5,L*0.17,0,0,6.283); ctx.clip();
+    f.ty.s.forEach(function(c,i){ var s=f.spots[i%3]; ctx.fillStyle=c; ctx.beginPath(); ctx.ellipse(s[0]*L,s[1]*L*0.2,L*0.17,L*0.11,0,0,6.283); ctx.fill(); });
+    if(f.ty.tancho){ ctx.fillStyle='#e0302a'; ctx.beginPath(); ctx.arc(L*0.3,0,L*0.08,0,6.283); ctx.fill(); }
+    if(f.ty.shine){ ctx.fillStyle='rgba(255,255,255,.35)'; ctx.fillRect(-L*0.5,-L*0.12,L,L*0.06); }
+    ctx.restore(); ctx.restore();
+  },
+  draw:function(G,W,H,st,sb,time){
+    ctx.fillStyle='#6d9a55'; ctx.fillRect(0,0,W,H);
+    mgTitle('四號公園 · 餵錦鯉','點池塘丟飼料（鍵盤：方向鍵移動、E 丟）· 剩 '+G.food+' 顆',W,st);
+    var top=st+64, bot=H-sb-50, P={x:16,y:top,w:W-32,h:bot-top}; G.pond=P;
+    var cx=P.x+P.w/2, cy=P.y+P.h/2;
+    ctx.fillStyle='#8c8577'; ctx.beginPath(); ctx.ellipse(cx,cy,P.w*0.47,P.h*0.44,0,0,6.283); ctx.fill();   // 石頭邊
+    var g=ctx.createRadialGradient(cx,cy,10,cx,cy,P.w*0.45); g.addColorStop(0,'#3f8f9c'); g.addColorStop(1,'#2a6670');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(cx,cy,P.w*0.44,P.h*0.41,0,0,6.283); ctx.fill();
+    var self=this; G.koi.forEach(function(f){ self.drawKoi(f,P); });
+    G.pellets.forEach(function(p){ ctx.fillStyle='#b07a3a'; ctx.beginPath(); ctx.arc(P.x+p.x*P.w,P.y+p.y*P.h-(p.t<0.25?(0.25-p.t)*60:0),3,0,6.283); ctx.fill(); });
+    G.rip.forEach(function(r){ ctx.strokeStyle='rgba(255,255,255,'+(0.6*(1-r.t/1.2))+')'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.ellipse(P.x+r.x*P.w,P.y+r.y*P.h,6+r.t*24,(6+r.t*24)*0.5,0,0,6.283); ctx.stroke(); });
+    // 荷葉
+    [[0.18,0.3],[0.82,0.7],[0.76,0.25]].forEach(function(l,i){ ctx.fillStyle='#4f8a3c'; ctx.beginPath(); ctx.arc(P.x+l[0]*P.w,P.y+l[1]*P.h,14+i*3,0.3,6.0); ctx.lineTo(P.x+l[0]*P.w,P.y+l[1]*P.h); ctx.fill(); });
+    // 準星
+    var ax=P.x+G.cx*P.w, ay=P.y+G.cy*P.h; ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(ax,ay,9,0,6.283); ctx.moveTo(ax-14,ay); ctx.lineTo(ax-5,ay); ctx.moveTo(ax+5,ay); ctx.lineTo(ax+14,ay); ctx.stroke();
+    if(G.msg){ ctx.fillStyle=G.msg.c; ctx.font='800 17px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText(G.msg.txt,W/2,top+28); ctx.textAlign='left'; }
+    var R=mgRec('koi'), seen=R.seen?Object.keys(R.seen).length:0;
+    ctx.fillStyle='#f6f1e2'; ctx.font='600 13px "Noto Sans TC",sans-serif'; ctx.fillText('錦鯉圖鑑 '+seen+'/'+KOI_TYPES.length,16,H-sb-20);
+  },
+  result:function(G){ G.newN=0; },
+  resultText:function(G){ var R=mgRec('koi'), seen=R.seen?Object.keys(R.seen).length:0;
+    return ['餵完了！','這次有 '+G.caught.length+' 條錦鯉吃到飼料','錦鯉圖鑑 '+seen+'/'+KOI_TYPES.length+'：'+(R.seen?Object.keys(R.seen).join('、'):'')]; },
+  finish:function(G){
+    if(!G.caught.length){ toast(G.quit?'收起飼料袋':'錦鯉都沒吃到'); return; }
+    var R=mgRec('koi'), names=Object.keys(R.seen);
+    var cnt={}; G.caught.forEach(function(n){cnt[n]=(cnt[n]||0)+1;});
+    toast('餵到 '+G.caught.length+' 條錦鯉');
+    showCard('錦鯉','餵錦鯉 · '+G.caught.length+' 條','四號公園池塘','這次吃到的：'+Object.keys(cnt).map(function(n){return n+(cnt[n]>1?'×'+cnt[n]:'');}).join('、')+'。圖鑑 '+names.length+'/'+KOI_TYPES.length+'。');
+    addLog('在四號公園餵錦鯉，'+G.caught.length+' 條吃到飼料（'+clockStr()+'）');
+  }
+};
+// 彈珠台攤位、池塘的位置（永和）
+function mgSpot(){
+  if(state.world!=='yh'||DRIVE.on)return null;
+  var x=state.px/TS, y=state.py/TS;
+  if(Math.hypot(x-68.6,y-26.2)<1.9) return {g:'pachi'};
+  var e=(x-16.5)*(x-16.5)/56.25+(y-33.5)*(y-33.5)/30.25;
+  if(e<1) return {g:'koi'};
+  return null;
+}
+
+function paOpen(){ var h=state.clock/60; return h>=17||h<2; }
+
 /* ============ 台東釣魚：面向太平洋按 E 拋竿 ============ */
 var FISH={on:false,ph:'',t:0,sx:0,sy:0,bx:0,by:0,wait:0,nib:0,win:0,pick:null};
 var FISH_LIST=[
@@ -3428,6 +3919,7 @@ window.addEventListener('keydown',function(e){
   var k=e.key.toLowerCase();
   if(whoOpen){ e.preventDefault(); if(k==='escape')closeWho(); return; }
   if(MJ.on){ e.preventDefault(); if(k==='m')toggleAudio(); else mjKey(k,e.repeat); return; }
+  if(MG.on){ e.preventDefault(); keys[k]=1; if(k==='m')toggleAudio(); else mgKey(k,e.repeat); return; }
   if(RIDE.on){ e.preventDefault(); if((k==='e'||k==='enter'||k===' ')&&!e.repeat)rideSkip(); else if(k==='m')toggleAudio(); return; }
   if(BT.on){                                   // 對戰中鍵盤全部交給對戰選單（M/F 照常）
     e.preventDefault();
@@ -3445,7 +3937,7 @@ window.addEventListener('keydown',function(e){
   if(k==='r'&&!e.repeat){ e.preventDefault(); toggleRun(); }
   if(k==='t'&&!e.repeat){ e.preventDefault(); cycleTod(); }
 });
-window.addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=0;});
+window.addEventListener('keyup',function(e){var k=e.key.toLowerCase(); keys[k]=0; if(MG.on)mgKey(k,false,true);});
 window.addEventListener('blur',function(){keys={};joyReset();});
 
 var JOY_IN=56, KNOB_R=42, JOY_DEAD=0.16;
@@ -3678,7 +4170,7 @@ function buildWho(){
   });
 }
 function openWho(){
-  if(MJ.on||RIDE.on||BT.on)return;              // 打牌、坐車、對戰中不能換人
+  if(MJ.on||MG.on||RIDE.on||BT.on)return;              // 打牌、坐車、對戰、小遊戲中不能換人
   SND.sfx('open',0.45);
   buildWho(); whoOpen=true; whoEl.classList.add('on'); document.body.classList.add('in-who');
   keys={}; joyReset();
@@ -3934,6 +4426,7 @@ function step(dt){
 
 // NPC 的提示文字：[長版, 行動鈕短版]
 function npcLabel(o){
+  if(o.mg) return o.mg==='dance'?['跟阿姨跳廣場舞','跳舞']:['幫老闆顧店','顧店'];
   if(o.mj&&isBuddyChar()&&buddyParty().length) return ['坐下來打麻將','打牌'];
   if(o.buddy&&isBuddyChar()){
     if(o.inParty) return ['請'+o.n+'先回家','回家'];
@@ -3951,6 +4444,7 @@ function loop(t){
   }
   if(RIDE.on){ rideFrame(dt,t/1000); requestAnimationFrame(loop); return; }   // 坐高鐵中
   if(MJ.on){ mjFrame(dt,t/1000); requestAnimationFrame(loop); return; }      // 打麻將中
+  if(MG.on){ mgFrame(dt,t/1000); requestAnimationFrame(loop); return; }      // 永和小遊戲中
   if(BT.on){ battleFrame(dt,t/1000); requestAnimationFrame(loop); return; }  // 對戰中地圖凍結
   step(dt); fishStep(dt);
   render(dt,t/1000);
@@ -3967,6 +4461,7 @@ function loop(t){
     else{ hintEl.innerHTML='<kbd>E</kbd>下車，結束試駕'; hintEl.classList.add('on'); setAbtn('下車',true); } }
   else if(nearest){
     var label = nearest.k==='fish'?'朝大海拋竿釣魚'
+      : nearest.k==='mg'?(nearest.o.g==='koi'?'在池塘邊餵錦鯉':paOpen()?'打彈珠台':'彈珠台（晚上才開）')
       : nearest.k==='car'?(nearest.o.t==='pcar'?'開這台車':'試駕這台車')
       : nearest.k==='gate'?nearest.o.label
       : nearest.k==='item'?'撿起發亮的東西'
@@ -3976,6 +4471,7 @@ function loop(t){
     hintEl.classList.add('on');
     // 行動按鈕用短版動詞，塞得進 68px 圓鈕
     var shortLabel = nearest.k==='fish'?'釣魚'
+      : nearest.k==='mg'?(nearest.o.g==='koi'?'餵魚':'彈珠')
       : nearest.k==='car'?(nearest.o.t==='pcar'?'開車':'試駕')
       : nearest.k==='gate'?nearest.o.short
       : nearest.k==='item'?'撿'
