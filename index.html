@@ -2683,7 +2683,7 @@ function drawTrainScene(W,H,t,time){
 }
 function rideHud(W,H,t){                       // 坐車／上國道時上方的站點進度
   var i;
-  var st=RIDE.r.st, top=safeIn.t+14, px0=28, px1=W-28;
+  var st=RIDE.r.st, top=safeIn.t+56, px0=28, px1=W-28;   // 放在右上角 HUD 鈕那排下面
   var p=smooth((t-RT.title)/(RT.train-RT.title-0.4));
   ctx.fillStyle='rgba(20,26,34,.72)'; rrect(ctx,12,top,W-24,74,12); ctx.fill();
   ctx.fillStyle=RIDE.r.stripe; ctx.font='700 11px "DM Mono",monospace'; ctx.textAlign='left'; ctx.fillText(RIDE.r.tag,px0,top+20);
@@ -3012,7 +3012,7 @@ function mjTileBack(x,y,w,h){
   ctx.fillStyle='#f2ead2'; ctx.fillRect(x,y+h-Math.max(2,h*0.2),w,Math.max(2,h*0.2));
 }
 function mjDraw(time){
-  var W=cv.vw, H=cv.vh, st=safeIn.t, sb=safeIn.b;
+  var W=cv.vw, H=cv.vh, st0=safeIn.t, st=st0+(W<780?46:0), sb=safeIn.b;   // 畫面窄時往下讓出右上角 HUD 鈕那一排
   MJ.hits=[];
   var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#1d3b2c'); g.addColorStop(1,'#10241a');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
@@ -3070,7 +3070,7 @@ function mjDraw(time){
   if(MJ.seats[0].pet) mjDog(x0+tw*0.6,handY-24,1.3,1,time);     // 你是泡芙花花：泡芙坐在你的手牌旁邊
   // 中離按鈕（左上角）
   if(MJ.phase==='mine'||MJ.phase==='ai'||MJ.phase==='intro'){
-    var qx=12, qy=st+10, qw=58, qh=28;
+    var qx=12, qy=st0+10, qw=58, qh=28;
     ctx.fillStyle='rgba(192,57,43,.88)'; rrect(ctx,qx,qy,qw,qh,14); ctx.fill();
     ctx.fillStyle='#fff'; ctx.font='700 13px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('中離',qx+qw/2,qy+19); ctx.textAlign='left';
     MJ.hits.push({x:qx,y:qy,w:qw,h:qh,f:mjQuit});
@@ -3156,9 +3156,11 @@ function mgFrame(dt,time){
   }
   var W=cv.vw, H=cv.vh, st=safeIn.t, sb=safeIn.b;
   MG.hits=[];
-  G.draw(MG.G,W,H,st,sb,time);
-  // 共用：右上角離開鈕
-  mgBtn(W-74,st+10,64,30,MG.ph==='end'?'回去':'離開',function(){ mgQuit(); },'#3b3f3a');
+  // 右上角那排 HUD 鈕（時段、換角色、全螢幕、音量）約佔 200px 寬，畫面窄時標題會撞到 → 整個內容往下讓出一排
+  var top=st+(W<780?50:0);
+  G.draw(MG.G,W,H,top,sb,time);
+  // 共用：左上角離開鈕（右上角是 HUD 鈕）
+  mgBtn(12,st+10,64,30,MG.ph==='end'?'回去':'離開',function(){ mgQuit(); },'rgba(192,57,43,.9)');
   if(MG.ph==='end') mgResult(G.resultText(MG.G),W,H);
   if(MG.ph==='out'){ ctx.fillStyle='rgba(0,0,0,'+Math.min(1,MG.outT*2.5)+')'; ctx.fillRect(0,0,W,H); }
   else if(MG.ph==='intro'){ ctx.fillStyle='rgba(0,0,0,'+Math.max(0,1-MG.t*2.5)+')'; ctx.fillRect(0,0,W,H); }
