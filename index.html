@@ -1793,6 +1793,7 @@ function render(dt,time){
     }
   }
 
+  drawJQ(ox,oy,time);                                // 永和的借錢哥
   for(i=0;i<puffs.length;i++){var sm=puffs[i];      // 菸
     if(sm.x<x0-2||sm.x>x1+2)continue;
     ctx.fillStyle='rgba(228,232,228,'+Math.max(0,sm.a).toFixed(3)+')';
@@ -1802,6 +1803,7 @@ function render(dt,time){
       drawBubble(nb2.x*TS-ox,nb2.y*TS-oy-50,nb2.say,nb2.ask>0);
     var dg=nb2.dog; if(dg&&dg.sayT>0) drawBubble(dg.x*TS-ox,dg.y*TS-oy-12,dg.say,false);}   // 狗的泡泡放低一點，避開主人的名牌
   if(state.pSayT>0) drawBubble(state.px-ox,state.py-oy-50,state.pSay,false);     // 玩家自己講的話
+  if(state.world==='yh'&&JQ.sayT>0) drawBubble(JQ.x*TS-ox,JQ.y*TS-oy-58,JQ.say,JQ.ph==='ask');
   drawFists(ox,oy);
   drawFish(ox,oy,time);
 
@@ -1895,6 +1897,7 @@ function findNearest(){
   if(!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if((CP.t==='car'||CP.t==='pcar')&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // 每個人都可以試駕／開走停著的車
   for(i=0;i<POIS.length;i++){var P=POIS[i];
     cand(4,8,'poi',P,P.x+0.5,P.y+0.5);}
+  if(jqCanTalk()) cand(-2,9,'jq',JQ,JQ.x,JQ.y);          // 借錢哥停在旁邊開口借錢
   var SA=seaAhead(); if(SA)cand(3.5,1,'fish',SA,ptx,pty);
   var MS=mgSpot(); if(MS)cand(3.4,1,'mg',MS,ptx,pty);       // 永和：彈珠台、池塘   // 台東：面向大海可以拋竿
   return best;
@@ -1954,6 +1957,7 @@ function interact(){
   if(FISH.on){ fishPress(); return; }
   var t=findNearest(); if(!t)return;
   if(t.k==='car'){ startDrive(t.o); return; }
+  if(t.k==='jq'){ jqTalk(); return; }
   if(t.k==='fish'){ startFish(t.o); return; }
   if(t.k==='mg'){ if(t.o.g==='pachi'&&!paOpen()){ toast('彈珠台晚上五點才開喔'); return; } mgStart(t.o.g); return; }
   if(t.k==='item'){
@@ -3670,6 +3674,136 @@ function mgSpot(){
 
 function paOpen(){ var h=state.clock/60; return h>=17||h<2; }
 
+/* ============ 永和：借錢哥 ============
+   騎著機車在永和的大馬路上繞（福和路、中正路、中和路、竹林路、永和路），
+   看到路邊有人就騎過去借錢。找上路人：路人拒絕後他騎走。
+   找上玩家：停在你旁邊開口借錢，你按 E 回他兩句，講完第二句他就騎車落跑。 */
+var JQ_ROWS=[13,21.5,45], JQ_COLS=[31,59], JQ_COLY=[13,21.5,45,62.5];
+var JQ_NODES=(function(){
+  var n=[];
+  JQ_ROWS.forEach(function(y){ [1.5,31,59,88.5].forEach(function(x){ n.push({x:x,y:y}); }); });
+  JQ_COLS.forEach(function(x){ n.push({x:x,y:62.5}); });
+  n.forEach(function(a){ a.nb=[]; });
+  function link(a,b){ a.nb.push(b); b.nb.push(a); }
+  function at(x,y){ return n.filter(function(q){return q.x===x&&q.y===y;})[0]; }
+  JQ_ROWS.forEach(function(y){ var xs=[1.5,31,59,88.5]; for(var i=0;i<3;i++)link(at(xs[i],y),at(xs[i+1],y)); });
+  JQ_COLS.forEach(function(x){ for(var i=0;i<3;i++)link(at(x,JQ_COLY[i]),at(x,JQ_COLY[i+1])); });
+  return n;
+})();
+var JQ_NO=['沒有零錢欸','我自己也沒油啊','你上禮拜也這樣講','去找警察借啦','……（假裝沒聽到）'];
+var JQ={x:31,y:21.5,from:null,to:null,dir:'right',ph:'ride',t:0,cd:12,look:0,say:'',sayT:0,step:0,tgt:null,spd:0};
+JQ.from=JQ_NODES[5]; JQ.to=JQ.from.nb[0];
+function jqSay(t,s){ JQ.say=t; JQ.sayT=s||3; }
+function jqClear(x0,y0,x1,y1){                      // 兩點之間沒有房子、樹擋著
+  var d=Math.hypot(x1-x0,y1-y0), n=Math.ceil(d*2);
+  for(var i=1;i<n;i++){ var u=i/n; if(solidAt((x0+(x1-x0)*u)*TS,(y0+(y1-y0)*u)*TS))return false; }
+  return true;
+}
+function jqFace(dx,dy){ if(Math.abs(dx)>Math.abs(dy))JQ.dir=dx>0?'right':'left'; else if(dy) JQ.dir=dy>0?'down':'up'; }
+function jqMoveTo(tx,ty,sp,dt){                    // 往 (tx,ty) 騎，到了回傳 true
+  var dx=tx-JQ.x, dy=ty-JQ.y, d=Math.hypot(dx,dy), s=sp*dt;
+  if(d<=s||d<0.01){ JQ.x=tx; JQ.y=ty; return true; }
+  JQ.x+=dx/d*s; JQ.y+=dy/d*s; jqFace(dx,dy); return false;
+}
+function jqNextNode(){
+  var c=JQ.to, opts=c.nb.filter(function(q){return q!==JQ.from;});
+  if(!opts.length)opts=c.nb;
+  JQ.from=c; JQ.to=opts[Math.floor(Math.random()*opts.length)];
+}
+function jqBackToRoad(){                           // 回到最近的路口繼續繞
+  var best=JQ_NODES[0], bd=1e9;
+  JQ_NODES.forEach(function(q){ var d=Math.hypot(q.x-JQ.x,q.y-JQ.y); if(d<bd&&jqClear(JQ.x,JQ.y,q.x,q.y)){bd=d;best=q;} });
+  JQ.from=best; JQ.to=best; JQ.ph='back';
+}
+function jqFlee(){                                 // 落跑：往離你最遠、又走得到的路口衝
+  var px=state.px/TS, py=state.py/TS, best=null, bd=-1;
+  JQ_NODES.forEach(function(q){ var d=Math.hypot(q.x-px,q.y-py); if(d>bd&&Math.hypot(q.x-JQ.x,q.y-JQ.y)<30&&jqClear(JQ.x,JQ.y,q.x,q.y)){bd=d;best=q;} });
+  if(!best){ jqBackToRoad(); JQ.ph='flee'; return; }
+  JQ.from=best; JQ.to=best; JQ.ph='flee';
+}
+function jqStep(dt){
+  if(state.world!=='yh')return;
+  if(JQ.sayT>0)JQ.sayT-=dt;
+  JQ.t+=dt; if(JQ.cd>0)JQ.cd-=dt;
+  var px=state.px/TS, py=state.py/TS;
+  if(JQ.ph==='ride'){
+    JQ.spd=4.2;
+    if(jqMoveTo(JQ.to.x,JQ.to.y,JQ.spd,dt))jqNextNode();
+    JQ.look-=dt;
+    if(JQ.look<=0&&JQ.cd<=0){                      // 每秒看一下路邊有沒有人可以借
+      JQ.look=1;
+      var dp=Math.hypot(px-JQ.x,py-JQ.y);
+      if(!DRIVE.on&&!FISH.on&&dp<7&&dp>1&&jqClear(JQ.x,JQ.y,px,py)&&Math.random()<0.6){ JQ.ph='go'; JQ.tgt='me'; JQ.t=0; return; }
+      var cands=NPCS.filter(function(n){ return !n.inParty&&n.sayT<=0&&Math.hypot(n.x-JQ.x,n.y-JQ.y)<6&&jqClear(JQ.x,JQ.y,n.x,n.y); });
+      if(cands.length&&Math.random()<0.25){ JQ.ph='go'; JQ.tgt=cands[Math.floor(Math.random()*cands.length)]; JQ.t=0; }
+    }
+  }else if(JQ.ph==='go'){
+    var T=JQ.tgt==='me'?{x:px,y:py}:JQ.tgt;
+    var dx=T.x-JQ.x, dy=T.y-JQ.y, d=Math.hypot(dx,dy);
+    if(d>9||JQ.t>8||(JQ.tgt==='me'&&(DRIVE.on||FISH.on))){ jqBackToRoad(); return; }
+    JQ.spd=3.2;
+    if(d<1.5){ JQ.ph='ask'; JQ.t=0; JQ.step=0; jqFace(dx,dy); jqSay('我騎到沒油了 借我10幾元 五十元 一百元好嗎?',3.4); SND.sfx('talk',0.35); }
+    else jqMoveTo(JQ.x+dx/d*(d-1.3),JQ.y+dy/d*(d-1.3),JQ.spd,dt);
+  }else if(JQ.ph==='ask'){
+    JQ.spd=0;
+    if(JQ.tgt==='me'){
+      var dd=Math.hypot(px-JQ.x,py-JQ.y);
+      if(JQ.step===0&&JQ.t>3.5){ JQ.step=0.5; jqSay('幫助我一點好嗎?',3); }
+      if(JQ.step<1&&JQ.t>16){ jqSay('好啦…不借就算了',2.4); JQ.cd=25; jqBackToRoad(); return; }
+      if(JQ.step<1&&dd>5){ jqSay('欸 別走啊…',2); JQ.cd=25; jqBackToRoad(); return; }
+      if(JQ.step===2&&JQ.t>1.8){ jqSay('……！',1.6); JQ.cd=45; jqFlee(); SND.sfx('toggle',0.3);
+        toast('借錢哥騎車跑走了'); addLog('在永和遇到借錢哥，你說是你把他弄上新聞的，他騎車跑了（'+clockStr()+'）'); save(); }
+    }else{
+      var n=JQ.tgt;
+      if(JQ.t>3.4&&JQ.step===0){ JQ.step=1; say(n,JQ_NO[Math.floor(Math.random()*JQ_NO.length)],2.8); }
+      if(JQ.t>6.2){ jqSay('唉…',1.4); JQ.cd=18+Math.random()*10; jqBackToRoad(); }
+    }
+  }else if(JQ.ph==='back'||JQ.ph==='flee'){
+    JQ.spd=JQ.ph==='flee'?9:3.6;
+    if(jqMoveTo(JQ.to.x,JQ.to.y,JQ.spd,dt)){ JQ.ph='ride'; JQ.from=JQ.to; jqNextNode(); }
+  }
+}
+function jqTalk(){                                  // 玩家回借錢哥（E）
+  if(JQ.step<1){ JQ.step=1; state.pSay='你上過新聞你知道嗎?'; state.pSayT=2.6; state.pIdleT=8; jqSay('蛤…?',2); SND.sfx('talk',0.35); }
+  else if(JQ.step===1){ JQ.step=2; JQ.t=0; state.pSay='是我把你弄上新聞的。'; state.pSayT=2.8; state.pIdleT=8; SND.sfx('talk',0.35); }
+}
+function jqCanTalk(){ return state.world==='yh'&&JQ.ph==='ask'&&JQ.tgt==='me'&&JQ.step<2; }
+function drawJQ(ox,oy,time){
+  if(state.world!=='yh')return;
+  var x=JQ.x*TS-ox, y=JQ.y*TS-oy, side=JQ.dir==='left'||JQ.dir==='right', s=JQ.dir==='left'?-1:1;
+  var vib=JQ.spd>0?Math.sin(time*40)*0.6:0;
+  ctx.save();
+  ctx.fillStyle='rgba(28,40,24,.22)'; ctx.beginPath(); ctx.ellipse(x,y+3,side?17:8,side?4:12,0,0,6.283); ctx.fill();
+  if(side){
+    ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(x-11*s,y,4.6,0,6.283); ctx.arc(x+12*s,y,4.6,0,6.283); ctx.fill();   // 輪子
+    ctx.fillStyle='#777'; ctx.beginPath(); ctx.arc(x-11*s,y,1.8,0,6.283); ctx.arc(x+12*s,y,1.8,0,6.283); ctx.fill();
+    ctx.fillStyle='#d8d4c8'; ctx.fillRect(x-6*s-(s<0?10:0),y-4+vib,10,3);                                          // 踏板
+    ctx.fillStyle='#3d6fb0';
+    ctx.beginPath(); ctx.moveTo(x-15*s,y-3+vib); ctx.quadraticCurveTo(x-15*s,y-13+vib,x-6*s,y-12+vib); ctx.lineTo(x-4*s,y-4+vib); ctx.closePath(); ctx.fill();   // 後車殼
+  }else{
+    ctx.fillStyle='#222'; rrect(ctx,x-3,y-14,6,7,2); ctx.fill(); rrect(ctx,x-3,y+3,6,7,2); ctx.fill();
+    ctx.fillStyle='#3d6fb0'; rrect(ctx,x-6,y-9+vib,12,15,4); ctx.fill();
+  }
+  // 騎士（戴安全帽）
+  var py=y-4+vib;
+  drawPerson(x-(side?3*s:0),py,'#e9cfb4','#6a7a52',JQ.dir,0,'借錢哥',null);
+  ctx.fillStyle='#e8c23a'; ctx.beginPath(); ctx.arc(x-(side?3*s:0),py-27,8.6,Math.PI,0); ctx.fill();               // 黃色安全帽
+  ctx.fillStyle='rgba(60,70,80,.55)'; if(JQ.dir!=='up') ctx.fillRect(x-(side?3*s:0)-(side?(s>0?-2:8):6),py-28,side?6:12,3);
+  if(side){                                         // 前車殼、龍頭、大燈（畫在人前面）
+    ctx.fillStyle='#3d6fb0'; ctx.beginPath(); ctx.moveTo(x+6*s,y-3+vib); ctx.lineTo(x+9*s,y-17+vib); ctx.lineTo(x+13*s,y-15+vib); ctx.lineTo(x+13*s,y-3+vib); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#333'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x+8*s,y-17+vib); ctx.lineTo(x+4*s,y-19+vib); ctx.stroke();
+    ctx.fillStyle='#fff6c0'; ctx.beginPath(); ctx.arc(x+13*s,y-12+vib,2,0,6.283); ctx.fill();
+  }else if(JQ.dir==='down'){
+    ctx.fillStyle='#3d6fb0'; rrect(ctx,x-7,y-4+vib,14,8,3); ctx.fill();
+    ctx.fillStyle='#fff6c0'; ctx.beginPath(); ctx.arc(x,y+1+vib,2.2,0,6.283); ctx.fill();
+  }
+  if(JQ.ph==='flee'){                               // 排氣煙
+    for(var i=0;i<3;i++){ var k=((time*3+i/3)%1); ctx.fillStyle='rgba(200,200,200,'+(0.5*(1-k))+')';
+      ctx.beginPath(); ctx.arc(x-(side?(16+k*14)*s:0),y-2+(side?0:(JQ.dir==='down'?-14-k*12:14+k*12)),2+k*4,0,6.283); ctx.fill(); }
+  }
+  ctx.restore();
+}
+
 /* ============ 台東釣魚：面向太平洋按 E 拋竿 ============ */
 var FISH={on:false,ph:'',t:0,sx:0,sy:0,bx:0,by:0,wait:0,nib:0,win:0,pick:null};
 var FISH_LIST=[
@@ -4503,7 +4637,7 @@ function loop(t){
   if(MJ.on){ mjFrame(dt,t/1000); requestAnimationFrame(loop); return; }      // 打麻將中
   if(MG.on){ mgFrame(dt,t/1000); requestAnimationFrame(loop); return; }      // 永和小遊戲中
   if(BT.on){ battleFrame(dt,t/1000); requestAnimationFrame(loop); return; }  // 對戰中地圖凍結
-  step(dt); fishStep(dt);
+  step(dt); fishStep(dt); jqStep(dt);
   render(dt,t/1000);
 
   nearest=(DRIVE.on||FISH.on)?null:findNearest();
@@ -4517,7 +4651,8 @@ function loop(t){
     if(rp1){ hintEl.innerHTML='<kbd>E</kbd>'+rp1.label; hintEl.classList.add('on'); setAbtn('上國道',true); }
     else{ hintEl.innerHTML='<kbd>E</kbd>下車，結束試駕'; hintEl.classList.add('on'); setAbtn('下車',true); } }
   else if(nearest){
-    var label = nearest.k==='fish'?'朝大海拋竿釣魚'
+    var label = nearest.k==='jq'?(JQ.step<1?'回借錢哥':'再回他一句')
+      : nearest.k==='fish'?'朝大海拋竿釣魚'
       : nearest.k==='mg'?(nearest.o.g==='koi'?'在池塘邊餵錦鯉':paOpen()?'打彈珠台':'彈珠台（晚上才開）')
       : nearest.k==='car'?(nearest.o.t==='pcar'?'開這台車':'試駕這台車')
       : nearest.k==='gate'?nearest.o.label
@@ -4527,7 +4662,8 @@ function loop(t){
     hintEl.innerHTML='<kbd>E</kbd>'+label;
     hintEl.classList.add('on');
     // 行動按鈕用短版動詞，塞得進 68px 圓鈕
-    var shortLabel = nearest.k==='fish'?'釣魚'
+    var shortLabel = nearest.k==='jq'?'回他'
+      : nearest.k==='fish'?'釣魚'
       : nearest.k==='mg'?(nearest.o.g==='koi'?'餵魚':'彈珠')
       : nearest.k==='car'?(nearest.o.t==='pcar'?'開車':'試駕')
       : nearest.k==='gate'?nearest.o.short
