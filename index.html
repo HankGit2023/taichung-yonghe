@@ -3798,8 +3798,9 @@ function drawJQ(ox,oy,time){
   }
   // 騎士（戴安全帽）
   var py=y-4+vib;
-  drawPerson(x-(side?3*s:0),py,'#e9cfb4','#6a7a52',JQ.dir,0,'借錢哥',null);
-  ctx.fillStyle='#e8c23a'; ctx.beginPath(); ctx.arc(x-(side?3*s:0),py-27,8.6,Math.PI,0); ctx.fill();               // 黃色安全帽
+  drawPerson(x-(side?3*s:0),py,'#e9cfb4','#2f9a4a',JQ.dir,0,'借錢哥',null);   // 綠衣
+  ctx.fillStyle='#f4f4f0'; ctx.beginPath(); ctx.arc(x-(side?3*s:0),py-27,8.6,Math.PI,0); ctx.fill();               // 白色安全帽
+  ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.lineWidth=1; ctx.stroke();
   ctx.fillStyle='rgba(60,70,80,.55)'; if(JQ.dir!=='up') ctx.fillRect(x-(side?3*s:0)-(side?(s>0?-2:8):6),py-28,side?6:12,3);
   if(side){                                         // 前車殼、龍頭、大燈（畫在人前面）
     ctx.fillStyle='#3d6fb0'; ctx.beginPath(); ctx.moveTo(x+6*s,y-3+vib); ctx.lineTo(x+9*s,y-17+vib); ctx.lineTo(x+13*s,y-15+vib); ctx.lineTo(x+13*s,y-3+vib); ctx.closePath(); ctx.fill();
