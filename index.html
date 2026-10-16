@@ -1897,7 +1897,7 @@ function findNearest(){
   if(!DRIVE.on){ for(i=0;i<props.length;i++){var CP=props[i]; if((CP.t==='car'||CP.t==='pcar')&&!CP.hidden)cand(1.6,2.6,'car',CP,CP.x,CP.y-0.3);} }   // 每個人都可以試駕／開走停著的車
   for(i=0;i<POIS.length;i++){var P=POIS[i];
     cand(4,8,'poi',P,P.x+0.5,P.y+0.5);}
-  if(jqCanTalk()) cand(-2,9,'jq',JQ,JQ.x,JQ.y);          // 借錢哥停在旁邊開口借錢
+  if(jqCanTalk()||jqCanChase()) cand(-2,9,'jq',JQ,JQ.x,JQ.y);          // 借錢哥停在旁邊開口借錢
   var SA=seaAhead(); if(SA)cand(3.5,1,'fish',SA,ptx,pty);
   var MS=mgSpot(); if(MS)cand(3.4,1,'mg',MS,ptx,pty);       // 永和：彈珠台、池塘   // 台東：面向大海可以拋竿
   return best;
@@ -3691,6 +3691,7 @@ var JQ_NODES=(function(){
   return n;
 })();
 var JQ_ASK=['讓我加點油','我都沒油了好不好','幾10塊, 50, 100','幫助我一下好不好'];   // 一句一句講
+var JQ_CAUGHT=['你第八次跟我借錢了','而且你上次在台北市','南京東路','也是跟我要錢','你就是因為這件事情上新聞的','你不知道嗎?'];   // 追上落跑的借錢哥時你說的話
 var JQ_NO=['沒有零錢欸','我自己也沒油啊','你上禮拜也這樣講','去找警察借啦','……（假裝沒聽到）'];
 var JQ={x:31,y:21.5,from:null,to:null,dir:'right',ph:'ride',t:0,cd:12,look:0,say:'',sayT:0,step:0,tgt:null,spd:0};
 JQ.from=JQ_NODES[5]; JQ.to=JQ.from.nb[0];
@@ -3753,23 +3754,32 @@ function jqStep(dt){
       var dd=Math.hypot(px-JQ.x,py-JQ.y);
       if(JQ.step<1&&JQ.t>20){ jqSay('好啦…不借就算了',2.4); JQ.cd=25; jqBackToRoad(); return; }
       if(JQ.step<1&&dd>5){ jqSay('欸 別走啊…',2); JQ.cd=25; jqBackToRoad(); return; }
-      if(JQ.step===2&&JQ.t>1.8){ jqSay('……！',1.6); JQ.cd=45; jqFlee(); SND.sfx('toggle',0.3);
+      if(JQ.step===2&&JQ.t>1.8){ jqSay('……！',1.6); JQ.cd=45; JQ.fled=1; jqFlee(); SND.sfx('toggle',0.3);
         toast('借錢哥騎車跑走了'); addLog('在永和遇到借錢哥，你說是你把他弄上新聞的，他騎車跑了（'+clockStr()+'）'); save(); }
     }else{
       var n=JQ.tgt;
       if(JQ.t>8.6&&JQ.step===0){ JQ.step=1; say(n,JQ_NO[Math.floor(Math.random()*JQ_NO.length)],2.8); }
       if(JQ.t>11.4){ jqSay('唉…',1.4); JQ.cd=18+Math.random()*10; jqBackToRoad(); }
     }
+  }else if(JQ.ph==='caught'){                      // 被你追上：停下來聽你一句一句講
+    JQ.spd=0; jqFace(px-JQ.x,py-JQ.y);
+    var ci=Math.floor(JQ.t/2.3);
+    if(ci<JQ_CAUGHT.length&&ci!==JQ.ci){ JQ.ci=ci; state.pSay=JQ_CAUGHT[ci]; state.pSayT=2.5; state.pIdleT=8; SND.sfx('talk',0.3); if(ci===2)jqSay('……',1.5); }
+    if(JQ.t>JQ_CAUGHT.length*2.3+0.3&&JQ.step!==3){ JQ.step=3; jqSay('……那、那借我五十就好?',2.6); }
+    if(JQ.t>JQ_CAUGHT.length*2.3+3){ jqSay('……！',1.6); JQ.fled=0; JQ.cd=60; jqFlee(); SND.sfx('toggle',0.3);
+      toast('借錢哥又騎車跑了'); addLog('追上落跑的借錢哥，跟他說了南京東路上新聞的事，他又跑了（'+clockStr()+'）'); save(); }
   }else if(JQ.ph==='back'||JQ.ph==='flee'){
-    JQ.spd=JQ.ph==='flee'?9:3.6;
+    JQ.spd=JQ.ph==='flee'?8:3.6;
     if(jqMoveTo(JQ.to.x,JQ.to.y,JQ.spd,dt)){ JQ.ph='ride'; JQ.from=JQ.to; jqNextNode(); }
   }
 }
 function jqTalk(){                                  // 玩家回借錢哥（E）
+  if(jqCanChase()){ JQ.ph='caught'; JQ.t=0; JQ.ci=-1; JQ.step=0; jqSay('欸…!?',1.4); return; }   // 追上落跑的他
   if(JQ.step<1){ JQ.step=1; state.pSay='你上過新聞你知道嗎?'; state.pSayT=2.6; state.pIdleT=8; jqSay('蛤…?',2); SND.sfx('talk',0.35); }
   else if(JQ.step===1){ JQ.step=2; JQ.t=0; state.pSay='是我把你弄上新聞的。'; state.pSayT=2.8; state.pIdleT=8; SND.sfx('talk',0.35); }
 }
 function jqCanTalk(){ return state.world==='yh'&&JQ.ph==='ask'&&JQ.tgt==='me'&&JQ.step<2; }
+function jqCanChase(){ return state.world==='yh'&&JQ.fled&&(JQ.ph==='ride'||JQ.ph==='back'||JQ.ph==='flee')&&!DRIVE.on&&Math.hypot(state.px/TS-JQ.x,state.py/TS-JQ.y)<2.4; }
 function drawJQ(ox,oy,time){
   if(state.world!=='yh')return;
   var x=JQ.x*TS-ox, y=JQ.y*TS-oy, side=JQ.dir==='left'||JQ.dir==='right', s=JQ.dir==='left'?-1:1;
@@ -4653,7 +4663,7 @@ function loop(t){
     if(rp1){ hintEl.innerHTML='<kbd>E</kbd>'+rp1.label; hintEl.classList.add('on'); setAbtn('上國道',true); }
     else{ hintEl.innerHTML='<kbd>E</kbd>下車，結束試駕'; hintEl.classList.add('on'); setAbtn('下車',true); } }
   else if(nearest){
-    var label = nearest.k==='jq'?(JQ.step<1?'回借錢哥':'再回他一句')
+    var label = nearest.k==='jq'?(JQ.ph!=='ask'?'叫住借錢哥':JQ.step<1?'回借錢哥':'再回他一句')
       : nearest.k==='fish'?'朝大海拋竿釣魚'
       : nearest.k==='mg'?(nearest.o.g==='koi'?'在池塘邊餵錦鯉':paOpen()?'打彈珠台':'彈珠台（晚上才開）')
       : nearest.k==='car'?(nearest.o.t==='pcar'?'開這台車':'試駕這台車')
@@ -4664,7 +4674,7 @@ function loop(t){
     hintEl.innerHTML='<kbd>E</kbd>'+label;
     hintEl.classList.add('on');
     // 行動按鈕用短版動詞，塞得進 68px 圓鈕
-    var shortLabel = nearest.k==='jq'?'回他'
+    var shortLabel = nearest.k==='jq'?(JQ.ph!=='ask'?'叫住':'回他')
       : nearest.k==='fish'?'釣魚'
       : nearest.k==='mg'?(nearest.o.g==='koi'?'餵魚':'彈珠')
       : nearest.k==='car'?(nearest.o.t==='pcar'?'開車':'試駕')
