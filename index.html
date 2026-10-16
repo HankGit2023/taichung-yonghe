@@ -3690,6 +3690,7 @@ var JQ_NODES=(function(){
   JQ_COLS.forEach(function(x){ for(var i=0;i<3;i++)link(at(x,JQ_COLY[i]),at(x,JQ_COLY[i+1])); });
   return n;
 })();
+var JQ_ASK=['讓我加點油','我都沒油了好不好','幾10塊, 50, 100','幫助我一下好不好'];   // 一句一句講
 var JQ_NO=['沒有零錢欸','我自己也沒油啊','你上禮拜也這樣講','去找警察借啦','……（假裝沒聽到）'];
 var JQ={x:31,y:21.5,from:null,to:null,dir:'right',ph:'ride',t:0,cd:12,look:0,say:'',sayT:0,step:0,tgt:null,spd:0};
 JQ.from=JQ_NODES[5]; JQ.to=JQ.from.nb[0];
@@ -3742,21 +3743,22 @@ function jqStep(dt){
     var dx=T.x-JQ.x, dy=T.y-JQ.y, d=Math.hypot(dx,dy);
     if(d>9||JQ.t>8||(JQ.tgt==='me'&&(DRIVE.on||FISH.on))){ jqBackToRoad(); return; }
     JQ.spd=3.2;
-    if(d<1.5){ JQ.ph='ask'; JQ.t=0; JQ.step=0; jqFace(dx,dy); jqSay('我騎到沒油了 借我10幾元 五十元 一百元好嗎?',3.4); SND.sfx('talk',0.35); }
+    if(d<1.5){ JQ.ph='ask'; JQ.t=0; JQ.step=0; JQ.li=0; jqFace(dx,dy); jqSay(JQ_ASK[0],2.6); SND.sfx('talk',0.35); }
     else jqMoveTo(JQ.x+dx/d*(d-1.3),JQ.y+dy/d*(d-1.3),JQ.spd,dt);
   }else if(JQ.ph==='ask'){
     JQ.spd=0;
+    var li=Math.min(JQ_ASK.length-1,Math.floor(JQ.t/2.4));             // 借錢台詞一句接一句（你回話後就停）
+    if(JQ.step<1&&li>JQ.li){ JQ.li=li; jqSay(JQ_ASK[li],li===JQ_ASK.length-1?4:2.6); SND.sfx('talk',0.25); }
     if(JQ.tgt==='me'){
       var dd=Math.hypot(px-JQ.x,py-JQ.y);
-      if(JQ.step===0&&JQ.t>3.5){ JQ.step=0.5; jqSay('幫助我一點好嗎?',3); }
-      if(JQ.step<1&&JQ.t>16){ jqSay('好啦…不借就算了',2.4); JQ.cd=25; jqBackToRoad(); return; }
+      if(JQ.step<1&&JQ.t>20){ jqSay('好啦…不借就算了',2.4); JQ.cd=25; jqBackToRoad(); return; }
       if(JQ.step<1&&dd>5){ jqSay('欸 別走啊…',2); JQ.cd=25; jqBackToRoad(); return; }
       if(JQ.step===2&&JQ.t>1.8){ jqSay('……！',1.6); JQ.cd=45; jqFlee(); SND.sfx('toggle',0.3);
         toast('借錢哥騎車跑走了'); addLog('在永和遇到借錢哥，你說是你把他弄上新聞的，他騎車跑了（'+clockStr()+'）'); save(); }
     }else{
       var n=JQ.tgt;
-      if(JQ.t>3.4&&JQ.step===0){ JQ.step=1; say(n,JQ_NO[Math.floor(Math.random()*JQ_NO.length)],2.8); }
-      if(JQ.t>6.2){ jqSay('唉…',1.4); JQ.cd=18+Math.random()*10; jqBackToRoad(); }
+      if(JQ.t>8.6&&JQ.step===0){ JQ.step=1; say(n,JQ_NO[Math.floor(Math.random()*JQ_NO.length)],2.8); }
+      if(JQ.t>11.4){ jqSay('唉…',1.4); JQ.cd=18+Math.random()*10; jqBackToRoad(); }
     }
   }else if(JQ.ph==='back'||JQ.ph==='flee'){
     JQ.spd=JQ.ph==='flee'?9:3.6;
